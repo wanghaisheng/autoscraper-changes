@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install all necessary packages
-        run: pip install requests beautifulsoup4 pandas sendgrid
+        run: pip install requests beautifulsoup4 pandas sendgrid amazon_buddy
       - name: Run the scraping script
         run: python scrape.py
       - name: Commit and push and email if content changed
