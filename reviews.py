@@ -33,19 +33,11 @@ def app_store_scraper(app_name):
 #     app.review(how_many=1000)
     app.review()
 
-
-
     for review in app.reviews:
         score = review['rating']
         username = review['userName']
         review = review['review']
         applerows.append(review)
-
-        try:
-            print(f'{username} says: {review}')
-            writer.writerow({'username': username, 'review': review, 'score': score})
-        except:
-            print('Failed to add entry XXX')
     df = pd.DataFrame(applerows)
     df.to_csv("apple-app-review.csv", index=False)
 
