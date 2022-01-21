@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install all necessary packages
-        run: pip install  google_play_scraper app_store_scraper
+        run: pip install  google_play_scraper app_store_scraper pandas 
       - name: Run the scraping script
         run: python reviews.py
       - name: Commit and push and email if content changed
