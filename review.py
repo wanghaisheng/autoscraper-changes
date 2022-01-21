@@ -2,6 +2,10 @@ from google_play_scraper import reviews_all
 from app_store_scraper import AppStore
 from google_play_scraper import app
 import csv
+from pathlib import Path
+
+OUTPUT_DIR = Path("data")
+
 
 # package_name = 'com.netcompany.smittestop_exposure_notification'
 package_name= 'com.bemyeyes.bemyeyes'
@@ -10,7 +14,7 @@ def play_store_scraper(package):
     results = reviews_all(package)
 
     # Creates or updates the CSV with this name
-    with open(r'google_reviews.csv', 'w', newline='') as file:
+    with open(OUTPUT_DIR+'/google_reviews.csv', 'w', newline='') as file:
         fieldnames = ['username', 'review', 'score']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
@@ -30,10 +34,11 @@ def play_store_scraper(package):
 
 def app_store_scraper(app_name):
     app = AppStore(country="dk", app_name=app_name)
-    app.review(how_many=1000)
+#     app.review(how_many=1000)
+    app.review()
 
     # Creates or updates the CSV with this name
-    with open(r'appstore_reviews.csv', 'w', newline='') as file:
+    with open(OUTPUT_DIR+'/appstore_reviews.csv', 'w', newline='') as file:
         fieldnames = ['username', 'review', 'score']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
