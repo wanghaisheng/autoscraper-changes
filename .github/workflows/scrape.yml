@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install all necessary packages
-        run: pip install requests beautifulsoup4 pandas sendgrid amazon_buddy
+        run: pip install requests beautifulsoup4 pandas sendgrid amazon_buddy google_play_scraper app_store_scraper
       - name: Run the scraping script
         run: python reviews.py
       - name: Commit and push and email if content changed
