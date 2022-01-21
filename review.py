@@ -7,6 +7,7 @@ from pathlib import Path
 OUTPUT_DIR = Path("data")
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = str(OUTPUT_DIR)
 # package_name = 'com.netcompany.smittestop_exposure_notification'
 package_name= 'com.bemyeyes.bemyeyes'
 
