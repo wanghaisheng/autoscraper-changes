@@ -1,4 +1,4 @@
-from google_play_scraper import reviews_all
+from google_play_scraper import Sort, reviews_all
 from app_store_scraper import AppStore
 from google_play_scraper import app
 import csv
