@@ -4,6 +4,8 @@ from google_play_scraper import app
 import csv
 from pathlib import Path
 import pandas as pd
+import random
+
 
 OUTPUT_DIR = Path("data")
 
@@ -30,7 +32,7 @@ applerows = []
 
 def app_store_scraper(app_name):
     app = AppStore(country="us",app_name=app_name)
-    app.review(how_many=7000)
+    app.review(sleep = random.randint(3,6))
 #     app.review()
 
     for review in app.reviews:
