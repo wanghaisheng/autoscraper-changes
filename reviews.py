@@ -14,7 +14,11 @@ package_name= 'com.bemyeyes.bemyeyes'
 
 googlerows = []
 def play_store_scraper(package):
-    results = reviews_all(package)
+    results = reviews_all(package,
+                          sleep_milliseconds=0, # defaults to 0
+    lang='en', # defaults to 'en'
+    country='us', # defaults to 'us'
+    sort=Sort.MOST_RELEVANT, # defaults to Sort.MOST_RELEVANT)
 
 
     # Adds the fields to the CSV
