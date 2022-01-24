@@ -30,8 +30,8 @@ applerows = []
 
 def app_store_scraper(app_name):
     app = AppStore(app_name=app_name)
-#     app.review(how_many=1000)
-    app.review()
+    app.review(how_many=7000)
+#     app.review()
 
     for review in app.reviews:
         score = review['rating']
