@@ -29,7 +29,7 @@ def play_store_scraper(package):
 applerows = []
 
 def app_store_scraper(app_name):
-    app = AppStore(country="dk", app_name=app_name)
+    app = AppStore(app_name=app_name)
 #     app.review(how_many=1000)
     app.review()
 
