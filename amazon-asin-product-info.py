@@ -1,5 +1,6 @@
 from amazon_buddy import Product, AmazonBuddy, Category, SortType
 import pandas as pd
+from pathlib import Path
 
 
 OUTPUT_DIR = Path("data")
