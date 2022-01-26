@@ -1,7 +1,7 @@
 from amazon_buddy import Product, AmazonBuddy, Category, SortType
 import pandas as pd
 from pathlib import Path
-
+import random
 
 OUTPUT_DIR = Path("data")
 
@@ -18,10 +18,17 @@ df_queries = pd.read_csv("asins.csv")
 for i, asin in df_queries.iterrows():
     print(asin)
     asinid=asin['asin']
-    if not asin=='' or not asin=='asin' or not asin==' ':
+    if  asin=='':
+        pass
+    elif asin=='asin':
+        pass
+    elif asin==' ':
+        pass
+    else:
         reviews = ab.get_reviews(asin=asinid)
         print(asinid)
         reviews.save(OUTPUT_DIR+'{}-reviews.json'.format(asinid))
 
         ab.get_product_details(asinid).save(OUTPUT_DIR+'{}.json'.format(asinid))
 
+        time.sleep(random.randint(5,50))
