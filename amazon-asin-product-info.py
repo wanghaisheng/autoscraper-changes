@@ -17,11 +17,11 @@ df_queries = pd.read_csv("asins.csv")
 
 for i, asin in df_queries.iterrows():
     print(asin)
-    asin=asin['asin']
+    asinid=asin['asin']
     if not asin=='' or not asin=='asin' or not asin==' ' or not pd.isna(asin):
-        reviews = ab.get_reviews(asin=asin)
-        # print(reviews)
-        reviews.save(OUTPUT_DIR+'{}-reviews.json'.format(asin))
+        reviews = ab.get_reviews(asin=asinid)
+        print(asinid)
+        reviews.save(OUTPUT_DIR+'{}-reviews.json'.format(asinid))
 
-        ab.get_product_details(asin).save(OUTPUT_DIR+'{}.json'.format(asin))
+        ab.get_product_details(asinid).save(OUTPUT_DIR+'{}.json'.format(asinid))
 
