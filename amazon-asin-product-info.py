@@ -20,7 +20,7 @@ for i, asin in df_queries.iterrows():
     asinid=asin['asin']
     print(asinid)
     
-    if  asinid=='' or asinid=' ':
+    if  asinid=='' or asinid==' ':
         pass
     elif asinid=='asin':
         pass
