@@ -17,6 +17,7 @@ df_queries = pd.read_csv("asins.csv")
 
 for i, asin in df_queries.iterrows():
     print(asin)
+    asin=asin['asin']
     if not asin=='' or not asin=='asin' or not asin==' ' or not pd.isna(asin):
         reviews = ab.get_reviews(asin=asin)
         # print(reviews)
