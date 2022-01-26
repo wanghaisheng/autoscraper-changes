@@ -14,7 +14,7 @@ jobs:
       - name: Install all necessary packages
         run: pip install  aiohttp IPy chardet sendgrid
       - name: Run the scraping script
-        run: python3  backlink-domain-title.py -u backlink-urls.txt
+        run: python3  backlink-domain-title.py -d backlink-urls.txt
       - name: Commit and push and email if content changed
         env:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
