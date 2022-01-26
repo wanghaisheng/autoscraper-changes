@@ -11,6 +11,8 @@ import aiohttp
 import ssl
 import csv
 import IPy
+from urllib.parse import urlparse  # python 3.x
+
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -97,7 +99,11 @@ def parse_args():
         sys.exit()
     return args
 
-
+def is_root(url):
+    parsed_uri = urlparse(url)  # returns six components
+    domain = '{uri.netloc}/'.format(uri=parsed_uri)
+    result = domain.replace('www.', '')  # as per your case
+    return result
 def main():
     try:
         args = parse_args()
@@ -108,6 +114,7 @@ def main():
                 domains = f.readlines()
             for domain in domains:
                 domain = domain.strip()
+                domain = is_root(domain)
                 if domain != '':
                     urls.append('http://' + domain)
                     urls.append('https://' + domain)
