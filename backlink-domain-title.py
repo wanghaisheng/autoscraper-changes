@@ -114,7 +114,7 @@ def main():
                 domains = f.readlines()
             for domain in domains:
                 domain = domain.strip()
-                domain = is_root(domain)
+#                 domain = is_root(domain)
                 if domain != '':
                     urls.append('http://' + domain)
                     urls.append('https://' + domain)
