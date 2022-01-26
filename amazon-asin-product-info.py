@@ -18,9 +18,11 @@ df_queries = pd.read_csv("asins.csv")
 for i, asin in df_queries.iterrows():
     print(asin)
     asinid=asin['asin']
-    if  asin.empty():
+    print(asinid)
+    
+    if  asinid.empty():
         pass
-    elif asin=='asin':
+    elif asinid=='asin':
         pass
     else:
         reviews = ab.get_reviews(asin=asinid)
