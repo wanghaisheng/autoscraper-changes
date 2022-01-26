@@ -11,13 +11,13 @@ OUTPUT_DIR = str(OUTPUT_DIR)
 ab = AmazonBuddy(debug=True)
 
 
-df_queries = pd.read_csv("asin-queries-unique.csv")
+df_queries = pd.read_csv("asins.csv")
 
 
 
-for i, query in df_queries.iterrows():
+for i, asin in df_queries.iterrows():
     print(query)
-    asin=query['asin']
+#     asin=query['asin']
     if not asin=='' or not asin=='asin' or not asin==' ' or not pd.isna(asin):
         print(asin)
 
