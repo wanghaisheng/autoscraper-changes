@@ -1,4 +1,4 @@
-name: appstorereviews
+name: product-from-asin
 on:
   push
 jobs:
