@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install all necessary packages
-        run: pip install  aiohttp IPy chardet sendgrid
+        run: pip install  aiohttp IPy chardet sendgrid urllib
       - name: Run the scraping script
         run: python3  backlink-domain-title.py -d backlink-urls.txt
       - name: Commit and push and email if content changed
