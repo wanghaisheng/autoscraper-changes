@@ -8,7 +8,7 @@ OUTPUT_DIR = Path("data")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR = str(OUTPUT_DIR)
 
-ab = AmazonBuddy(debug=True, user_agent='ADD_USER_AGENT')
+ab = AmazonBuddy(debug=True)
 
 
 df_queries = pd.read_csv("asin-queries-unique.csv")
