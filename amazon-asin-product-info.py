@@ -19,9 +19,10 @@ for i, query in df_queries.iterrows():
     # print(query)
     asin=query['asin']
     print(asin)
-    reviews = ab.get_reviews(asin=asin)
-    # print(reviews)
-    reviews.save(OUTPUT_DIR+'{}-reviews.json'.format(asin))
+    if not asin=='' or not asin=='asin' or not asin==' ':
+        reviews = ab.get_reviews(asin=asin)
+        # print(reviews)
+        reviews.save(OUTPUT_DIR+'{}-reviews.json'.format(asin))
 
-    ab.get_product_details(asin).save(OUTPUT_DIR+'{}.json'.format(asin))
+        ab.get_product_details(asin).save(OUTPUT_DIR+'{}.json'.format(asin))
 
