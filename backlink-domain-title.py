@@ -90,7 +90,7 @@ def parse_args():
     parser.add_argument('-u','--url', metavar='url.txt', dest='url_file', type=str, help=u'urls to get title')
     parser.add_argument('-i','--ip', metavar='ip.txt', dest='ip_file', type=str, help=u'ips to get title')
     parser.add_argument('-t','--coroutine', metavar='20', dest='coroutine_count', type=int, default=20,help=u'coroutines to get title')
-    parser.add_argument('-o','--outfile', metavar='result.txt', dest='outfile', type=str, default='result.csv',help=u'file to result')
+    parser.add_argument('-o','--outfile', metavar='backlink-domain-titles.txt', dest='outfile', type=str, default='backlink-domain-titles.csv',help=u'file to result')
     args = parser.parse_args()
     if args.url_file == None and args.domain_file == None and args.ip_file == None:
         parser.print_help()
