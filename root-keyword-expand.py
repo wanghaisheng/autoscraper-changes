@@ -68,13 +68,13 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
             response=''
             if url_ok('http://www.google.com'):
                 # print('network is fine,there is no need for proxy ')
-                response = requests.get(remote_url, headers=headers).json()
+                response = requests.get(remote_url).json()
 
             else:
                 # print('google can not be access ')
 
                 # print('we need for proxy ',proxies)            
-                response = requests.get(remote_url,proxies=proxies, headers=headers).json()
+                response = requests.get(remote_url,proxies=proxies).json()
             # print(response)
             auto_suggest=[]
             if domain=='etsy':
