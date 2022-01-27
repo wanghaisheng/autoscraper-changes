@@ -127,7 +127,7 @@ category_level_3_keyword=category+'-lv3.csv'
 category_level_4_keyword=category+'-lv4.csv'
 category_level_5_keyword=category+'-lv5.csv'
 
-# get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
+get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
 get_longtail_keywords_from_recommend(category_level_1_keyword,category_level_2_keyword)
 get_longtail_keywords_from_recommend(category_level_2_keyword,category_level_3_keyword)
 get_longtail_keywords_from_recommend(category_level_3_keyword,category_level_4_keyword)
