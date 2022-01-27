@@ -57,9 +57,10 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
     all_autosuggestions = []
     domains = []
     for query in queries:
-
         for (domain, url) in urls.items():
-            # add the query to the url
+ 
+            print('process',domain,'keyword',query)
+           # add the query to the url
             remote_url = url + query
             # print(f"Remote url : {remote_url}")
             headers = {'User-Agent': 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:80.0) Gecko/20100101 Firefox/80.0'}
@@ -72,7 +73,7 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
             else:
                 # print('google can not be access ')
 
-                print('we need for proxy ',proxies)            
+                # print('we need for proxy ',proxies)            
                 response = requests.get(remote_url,proxies=proxies, headers=headers).json()
             # print(response)
             auto_suggest=[]
@@ -89,7 +90,7 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
                 if query in response[1]:
                    response[1].remove(query)
                 auto_suggest = response[1]
-                print(response[1])
+                # print(response[1])
             elif domain =='tiktok':
                 # print(response)
                 for item in response['sug_list']:
@@ -112,20 +113,21 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
                 to_be_saved_queries.append(query)
                 all_autosuggestions.append(suggestion)
                 domains.append(domain)
+            time.sleep(random.randint(3, 10))
+
         
-    df = pd.DataFrame({"domain": domains, "query": to_be_saved_queries, "keywords": all_autosuggestions})
-    df.to_csv(keyword_outputfilename,  mode='a', index=False)
-    time.sleep(random.randint(3, 20))
+        df = pd.DataFrame({"domain": domains, "query": to_be_saved_queries, "keywords": all_autosuggestions})
+        df.to_csv(keyword_outputfilename,  mode='a', index=False)
 
 category='jewelry'
-category_root_keyword=category+'-root.csv'
+category_root_keyword=category+'-lv0.csv'
 category_level_1_keyword=category+'-lv1.csv'
 category_level_2_keyword=category+'-lv2.csv'
 category_level_3_keyword=category+'-lv3.csv'
 category_level_4_keyword=category+'-lv4.csv'
 category_level_5_keyword=category+'-lv5.csv'
 
-get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
+# get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
 get_longtail_keywords_from_recommend(category_level_1_keyword,category_level_2_keyword)
 get_longtail_keywords_from_recommend(category_level_2_keyword,category_level_3_keyword)
 get_longtail_keywords_from_recommend(category_level_3_keyword,category_level_4_keyword)
