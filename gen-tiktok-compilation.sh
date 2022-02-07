@@ -1,5 +1,5 @@
 #! /bin/bash
-mkdir blur
+cd data
 clear
 echo "https://github.com/clientcrash/Tikgen"
 echo Generating TikTok Compilation...
@@ -10,12 +10,11 @@ for f in *.mp4; do clear ; echo "generating blur version for $f" ; ffmpeg -i $f 
 echo "Deleting normal versions..."
 rm *.mp4
 echo "Writing blur video file names to files.txt"
-for f in blur/*.mp4; do echo "file $f" >> files.txt ; done
+for f in data/*.mp4; do echo "file $f" >> files.txt ; done
 echo merging files...
-ffmpeg -f concat -i files.txt ./blur/result.mp4 -hide_banner -loglevel warning
-cp ./blur/result.mp4 ./result.mp4
-rm ./blur/*.mp4
+ffmpeg -f concat -i files.txt ./data/result.mp4 -hide_banner -loglevel warning
+cp ./data/result.mp4 ./result.mp4
+rm ./data/*.mp4
 rm files.txt
-rmdir blur
 echo DONE
 echo "I only created this script to practice my bash coding..."
