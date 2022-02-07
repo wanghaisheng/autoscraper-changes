@@ -13,6 +13,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
+      - name: Install all necessary packages
+        run: pip install  youtube_dl ffmpeg 
       - name: Run the scraping script
         run: bash gen-tiktok-compilation.sh 5
       - name: Commit and push and email if content changed
