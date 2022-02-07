@@ -1,5 +1,4 @@
 #! /bin/bash
-cd data
 clear
 echo "https://github.com/clientcrash/Tikgen"
 echo Generating TikTok Compilation...
