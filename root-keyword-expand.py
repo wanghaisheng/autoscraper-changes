@@ -122,21 +122,21 @@ def get_longtail_keywords_from_recommend(keyword_inputfilename,keyword_outputfil
 for root, dirs, files in os.walk('.'):
     for name in files:
         if name.endswith('-lv0.csv'):
-		category=name.split('-')[0]
-		print('========',category)
-# 		category='jewelry'
-		category_root_keyword=category+'-lv0.csv'
-		category_level_1_keyword=category+'-lv1.csv'
-		category_level_2_keyword=category+'-lv2.csv'
-		category_level_3_keyword=category+'-lv3.csv'
-		category_level_4_keyword=category+'-lv4.csv'
-		category_level_5_keyword=category+'-lv5.csv'
+            category=name.split('-')[0]
+            print('========',category)
+    # 		category='jewelry'
+            category_root_keyword=category+'-lv0.csv'
+            category_level_1_keyword=category+'-lv1.csv'
+            category_level_2_keyword=category+'-lv2.csv'
+            category_level_3_keyword=category+'-lv3.csv'
+            category_level_4_keyword=category+'-lv4.csv'
+            category_level_5_keyword=category+'-lv5.csv'
 
-		get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
-		get_longtail_keywords_from_recommend(category_level_1_keyword,category_level_2_keyword)
-		get_longtail_keywords_from_recommend(category_level_2_keyword,category_level_3_keyword)
-		get_longtail_keywords_from_recommend(category_level_3_keyword,category_level_4_keyword)
-		get_longtail_keywords_from_recommend(category_level_4_keyword,category_level_5_keyword)
+            get_longtail_keywords_from_recommend(category_root_keyword,category_level_1_keyword)
+            get_longtail_keywords_from_recommend(category_level_1_keyword,category_level_2_keyword)
+            get_longtail_keywords_from_recommend(category_level_2_keyword,category_level_3_keyword)
+            get_longtail_keywords_from_recommend(category_level_3_keyword,category_level_4_keyword)
+            get_longtail_keywords_from_recommend(category_level_4_keyword,category_level_5_keyword)
 
 
 
