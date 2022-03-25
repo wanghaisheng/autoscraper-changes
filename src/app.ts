@@ -454,6 +454,7 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
   } catch (error) {
     console.log('error===', error)
+  }
 // app.listen(8083, () => {
 //   console.log("server started");
 
