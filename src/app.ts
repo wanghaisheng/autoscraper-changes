@@ -440,22 +440,36 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 })
 
 
-app.listen(8083, () => {
-  console.log("server started");
+  try {
+    const browser = await webkit.launch();
+    const context = await browser.newContext(
+      {
+        headless: false,
+        ignoreHTTPSErrors: true
+        // proxy: { server: 'socks5://127.0.0.1:1080' },
+      });
 
-  // cron.schedule("* * * * *", function () {
-  //   // API call goes here
-  //   console.log("running a task every minute");
-    const options = {
-      hostname: 'localhost',
-      port: 8082,
-      path: '/todos',
-      method: 'GET'
-    }    
-    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
-      if (!error && response.statusCode == 200) {
-        console.log(body) // Print the google web page.
-      }
-    })
-  // })
-})
+    const cato = await homepage(browser, '')
+    const uniqdomains = await leibiexiangqing(browser, cato)
+
+  } catch (error) {
+    console.log('error===', error)
+// app.listen(8083, () => {
+//   console.log("server started");
+
+//   // cron.schedule("* * * * *", function () {
+//   //   // API call goes here
+//   //   console.log("running a task every minute");
+//     const options = {
+//       hostname: 'localhost',
+//       port: 8082,
+//       path: '/todos',
+//       method: 'GET'
+//     }    
+//     http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
+//       if (!error && response.statusCode == 200) {
+//         console.log(body) // Print the google web page.
+//       }
+//     })
+//   // })
+// })
