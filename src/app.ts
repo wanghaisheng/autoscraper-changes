@@ -452,7 +452,7 @@ app.listen(8083, () => {
       path: '/todos',
       method: 'GET'
     }    
-    http(options, function (error: any, response: { statusCode: number; }, body: any) {
+    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
       if (!error && response.statusCode == 200) {
         console.log(body) // Print the google web page.
       }
