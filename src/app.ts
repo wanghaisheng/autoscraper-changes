@@ -439,7 +439,7 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
 })
 
-
+async function archive(){
   try {
     const browser = await webkit.launch();
     const context = await browser.newContext(
@@ -454,7 +454,8 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
   } catch (error) {
     console.log('error===', error)
-  }
+  }}
+archive()
 // app.listen(8083, () => {
 //   console.log("server started");
 
