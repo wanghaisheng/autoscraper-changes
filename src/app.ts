@@ -5,7 +5,7 @@ const express = require('express');
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
-const cron = require('node-cron')
+// const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 
