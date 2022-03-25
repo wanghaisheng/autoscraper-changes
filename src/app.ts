@@ -9,6 +9,8 @@ const fs = require("fs");
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 
+var path = require('path');
+
 const app: Application = express();
 app.use(cors());
 
@@ -182,7 +184,27 @@ async function upsertFile(name: string) {
 }
 
 
+var myMkdirSync = function(dir: String){
+  if (fs.existsSync(dir)){
+      return
+  }
+
+  try{
+      fs.mkdirSync(dir)
+  }catch(err){
+      if(err.code == 'ENOENT'){
+          myMkdirSync(path.dirname(dir)) //create parent dir
+          myMkdirSync(dir) //create dir
+      }
+  }
+}
+
+
+
 function createFile(filename: string) {
+
+  myMkdirSync(path.dirname(filename));
+
   fs.open(filename, 'r', function (err: any, fd: any) {
     if (err) {
       fs.writeFile(filename, '', function (err: any) {
