@@ -5,6 +5,7 @@ const express = require('express');
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
+const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 
@@ -202,7 +203,7 @@ function createFile(filename: string) {
 }
 
 
-async function homepage(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, url:String) {
+async function homepage(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, url: String) {
 
   const context = await browser.newContext(
     {
@@ -255,14 +256,14 @@ async function homepage(browser: { newPage: () => any; newContext: (arg0: { head
 
 }
 
-async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean;  }) => any; }, cato: Array<string>) {
+async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, cato: Array<string>) {
   const context = await browser.newContext(
     {
       headless: false,
       ignoreHTTPSErrors: true,
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-    const p_page = await browser.newPage();
+  const p_page = await browser.newPage();
 
   createFile('shopify-merchantgenius.txt')
 
@@ -273,40 +274,40 @@ async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0:
     let domains: Array<string> = []
 
 
-    await p_page.goto(url,{timeout:0})
+    await p_page.goto(url, { timeout: 0 })
     // console.log(await p_page.content())
     const shopurls = p_page.locator('[href^="/shop/url/"]')
     const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
     console.log('loading exisit domain', history.length)
-    
-    const tmp=p_page.locator('div.container:nth-child(4) > table:nth-child(1)').textContent()
-    const url_count=tmp.split('A total of').pop().split('stores')[0]
-    console.log('total count in page',url_count,'we detected ',await shopurls.count())
 
-    if(await shopurls.count()<history.length){
+    const tmp = p_page.locator('div.container:nth-child(4) > table:nth-child(1)').textContent()
+    const url_count = tmp.split('A total of').pop().split('stores')[0]
+    console.log('total count in page', url_count, 'we detected ', await shopurls.count())
+
+    if (await shopurls.count() < history.length) {
       console.log('there is need to   saving')
-    }else{
+    } else {
 
-    for (let i = 0; i < await shopurls.count(); i++) {
-      const url = await shopurls.nth(i).getAttribute('href')
-      const domain = url.split('/shop/url/').pop()
-      if (domains.includes(domain)) {
+      for (let i = 0; i < await shopurls.count(); i++) {
+        const url = await shopurls.nth(i).getAttribute('href')
+        const domain = url.split('/shop/url/').pop()
+        if (domains.includes(domain)) {
 
-      } else {
-        domains.push(domain)
-        console.log('bingo', domain)
+        } else {
+          domains.push(domain)
+          console.log('bingo', domain)
 
+        }
       }
+      const uniqdomains = Array.from(new Set(domains));
+      console.log('founded domains', uniqdomains.length, ' under ', filename)
+      console.log('============start saving==========', filename)
+
+      createFile("merchantgenius/shopify-" + filename + ".txt")
+      savedomains(uniqdomains, filename)
+      console.log('============finish saving==========', filename)
+
     }
-    const uniqdomains = Array.from(new Set(domains));
-    console.log('founded domains', uniqdomains.length, ' under ', filename)
-    console.log('============start saving==========', filename)
-
-    createFile("merchantgenius/shopify-" + filename + ".txt")
-    savedomains(uniqdomains, filename)
-    console.log('============finish saving==========', filename)
-
-  }
   }
 }
 function savedomains(uniqdomains: Array<string>, filename: string) {
@@ -356,7 +357,7 @@ app.get("/:targetName", async (req: Request, res: Response) => {
     const uniqdomains = await leibiexiangqing(browser, cato)
 
   } catch (error) {
-    console.log('error===',error)
+    console.log('error===', error)
 
 
   }
@@ -439,6 +440,22 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 })
 
 
-app.listen(8082, () => {
+app.listen(8083, () => {
   console.log("server started");
+
+  // cron.schedule("* * * * *", function () {
+  //   // API call goes here
+  //   console.log("running a task every minute");
+    const options = {
+      hostname: 'localhost',
+      port: 8082,
+      path: '/todos',
+      method: 'GET'
+    }    
+    http(options, function (error: any, response: { statusCode: number; }, body: any) {
+      if (!error && response.statusCode == 200) {
+        console.log(body) // Print the google web page.
+      }
+    })
+  // })
 })
