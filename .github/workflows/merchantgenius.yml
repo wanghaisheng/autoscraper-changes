@@ -1,43 +1,29 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: merchantgenius
 
-
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-  # Triggers the workflow on push or pull request events but only for the main branch
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
+    push:
+    pull_request:
+    workflow_dispatch:
 
-#   schedule:
-#     - cron: '0 0 * * *'
-
-
-    
 jobs:
-#   cron:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Call our API route
-#         run: |
-#           curl --request GET \
-#           --url 'localhost:8082/' 
-    - name: Setup Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: 15.x # Change this for the version of your choice
-    - name: Install JS dependencies
-      run: npm install # or "npm install"
-    - name: Install Playwright dependencies
-      run: npx playwright install-deps
-    - name: Install Playwright browsers
-      run: npx playwright install
-    - run: npm run build --if-present
-    - run: npm run start
-    - run: |
-          curl --request GET \
-          --url 'localhost:8082/' 
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Use Node.js
+              uses: actions/setup-node@v1
+              with:
+                node-version: 15.x
+            - name: Install JS testing dependencies
+              run: npm ci
+            - name: Install Playwright dependencies
+              run: npx playwright install-deps
+            - name: Install browsers
+              run: npx playwright install
+            - run: npm run build --if-present
+            - run: npm run start
+            - run: |
+                  curl --request GET \
+                  --url 'localhost:8082/' 
