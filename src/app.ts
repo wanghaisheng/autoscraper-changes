@@ -13,11 +13,6 @@ const app: Application = express();
 app.use(cors());
 
 
-async function wait(ms: number) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, ms)
-  });
-}
 async function searchsitemap(url: String) {
   const browser = await webkit.launch();
   // Create a new incognito browser context.
@@ -127,7 +122,7 @@ async function get_shopify_defaut_sitemap(url: string) {
 
 
   }
-
+  
   return Array.from(new Set(url_list));
 }
 function check_url_cato(url: string) {
@@ -203,7 +198,8 @@ function createFile(filename: string) {
 }
 
 
-async function homepage(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, url: String) {
+async function homepage(url: String) {
+  const browser = await webkit.launch();
 
   const context = await browser.newContext(
     {
@@ -217,17 +213,12 @@ async function homepage(browser: { newPage: () => any; newContext: (arg0: { head
   await page.goto('https://www.merchantgenius.io')
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
-  // console.log('1-', await yuefen.count())
-  const yuefen2 = page.locator('div.container > a')
-  // console.log('2-', await yuefen2.count())
-
-
-  const yuefen3 = page.locator('[href^="/shop/date/"]')
-  // console.log('-', await yuefen3.count())
-
   createFile('shopify-catalog.txt')
+  createFile('shopify-merchantgenius.txt')
 
   const cato = []
+  let diff_cato=[]
+  let diff:boolean=false
   for (let i = 0; i < await yuefen.count(); i++) {
     const suburl = await yuefen.nth(i).getAttribute('href')
     const filename = suburl.split('/').pop()
@@ -237,12 +228,14 @@ async function homepage(browser: { newPage: () => any; newContext: (arg0: { head
     // <a href="/shop/date/2020-08-29"
     const history = fs.readFileSync('shopify-catalog.txt').toString().replace(/\r\n/g, '\n').split('\n');
     const log = fs.createWriteStream('shopify-catalog.txt', { flags: 'a' });
+    createFile("merchantgenius/shopify-" + filename + ".txt")
 
     // on new log entry ->
     console.log(history.includes(url))
     if (history.includes(url) == false) {
       log.write(url + "\n");
-
+      diff=true
+      diff_cato.push(filename)
     }
     // you can skip closing the stream if you want it to be opened while
     // a program runs, then file handle will be closed
@@ -251,40 +244,42 @@ async function homepage(browser: { newPage: () => any; newContext: (arg0: { head
     cato.push(filename)
 
   }
-  return cato
+  return diff_cato
 
 
 }
 
-async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, cato: Array<string>) {
+async function leibiexiangqing(cato: Array<string>) {
+  const browser = await webkit.launch();
+
   const context = await browser.newContext(
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      // proxy: { server: 'socks5://127.0.0.1:1080' },
+      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const p_page = await browser.newPage();
+  let domains: Array<string> = []
 
-  createFile('shopify-merchantgenius.txt')
 
   for (let i = 0; i < cato.length; i++) {
     const filename = cato[i]
     const url = 'https://www.merchantgenius.io/shop/date/' + filename
     console.log('dig url published on ', url)
-    let domains: Array<string> = []
 
-
+    
     await p_page.goto(url, { timeout: 0 })
     // console.log(await p_page.content())
-    const shopurls = p_page.locator('[href^="/shop/url/"]')
+    const shopurls = p_page.locator('.blogImage [href^="/shop/url/"]')
     const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
     console.log('loading exisit domain', history.length)
 
-    const tmp = p_page.locator('div.container:nth-child(4) > table:nth-child(1)').textContent()
-    const url_count = tmp.split('A total of').pop().split('stores')[0]
+    const tmp = p_page.locator('div.container:nth-child(4)')
+    const t  =await tmp.textContent()
+    const url_count = t.split('stores were found.')[0].split('A total of ')[1]
     console.log('total count in page', url_count, 'we detected ', await shopurls.count())
 
-    if (await shopurls.count() < history.length) {
+    if (url_count < history.length) {
       console.log('there is need to   saving')
     } else {
 
@@ -303,12 +298,12 @@ async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0:
       console.log('founded domains', uniqdomains.length, ' under ', filename)
       console.log('============start saving==========', filename)
 
-      createFile("merchantgenius/shopify-" + filename + ".txt")
       savedomains(uniqdomains, filename)
       console.log('============finish saving==========', filename)
 
     }
   }
+  return Array.from(new Set(domains));
 }
 function savedomains(uniqdomains: Array<string>, filename: string) {
 
@@ -326,9 +321,6 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
     if (catohistory.includes(uniqdomains[i]) == false) {
       log1.write(uniqdomains[i] + "\n");
     }
-    // console.log('saving domain to ',"merchantgenius/shopify-" + filename + ".txt")
-
-
     // on new log entry ->
     if (history.includes(uniqdomains[i]) == false) {
       log.write(uniqdomains[i] + "\n");
@@ -345,17 +337,23 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
 
   try {
-    const browser = await webkit.launch();
-    const context = await browser.newContext(
-      {
-        headless: false,
-        ignoreHTTPSErrors: true
-        // proxy: { server: 'socks5://127.0.0.1:1080' },
-      });
 
-    const cato = await homepage(browser, '')
-    const uniqdomains = await leibiexiangqing(browser, cato)
+    const diff_cato = await homepage( '')
+    if(diff_cato.length>0){
+    const uniqdomains = await leibiexiangqing( diff_cato)
+    // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
+    for (let i = 0; i < uniqdomains.length; i++) {
+      createFile('sitemaps/'+uniqdomains[i]+'-sitemap-urls.txt')
+      const url_list =await get_shopify_defaut_sitemap(uniqdomains[i])
+      const log = fs.createWriteStream('sitemaps/'+uniqdomains[i]+'-sitemap-urls.txt', { flags: 'a' });
+      if(url_list.length>0){
+        for (let i = 0; i < url_list.length; i++) {
+          log.write(url_list[i]+'\n')
+        }
+      }
+    }
 
+  }
   } catch (error) {
     console.log('error===', error)
 
@@ -439,39 +437,23 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
 })
 
-async function archive(){
-  try {
-    const browser = await webkit.launch();
-    const context = await browser.newContext(
-      {
-        headless: false,
-        ignoreHTTPSErrors: true
-        // proxy: { server: 'socks5://127.0.0.1:1080' },
-      });
 
-    const cato = await homepage(browser, '')
-    const uniqdomains = await leibiexiangqing(browser, cato)
+app.listen(8083, () => {
+  console.log("server started");
 
-  } catch (error) {
-    console.log('error===', error)
-  }}
-archive()
-// app.listen(8083, () => {
-//   console.log("server started");
-
-//   // cron.schedule("* * * * *", function () {
-//   //   // API call goes here
-//   //   console.log("running a task every minute");
-//     const options = {
-//       hostname: 'localhost',
-//       port: 8082,
-//       path: '/todos',
-//       method: 'GET'
-//     }    
-//     http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
-//       if (!error && response.statusCode == 200) {
-//         console.log(body) // Print the google web page.
-//       }
-//     })
-//   // })
-// })
+  // cron.schedule("* * * * *", function () {
+  //   // API call goes here
+  //   console.log("running a task every minute");
+    const options = {
+      hostname: 'localhost',
+      port: 8083,
+      path: '/todos',
+      method: 'GET'
+    }    
+    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
+      if (!error && response.statusCode == 200) {
+        console.log(body) // Print the google web page.
+      }
+    })
+  // })
+})
