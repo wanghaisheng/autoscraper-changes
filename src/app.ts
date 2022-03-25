@@ -197,16 +197,19 @@ function createFile(filename: string) {
       });
     } else {
       console.log("The file exists!", filename);
-
     }
   });
-  return fs.readFileSync(filename).toString().replace(/\r\n/g, '\n').split('\n')
-
 }
 
 
-async function homepage(browser: { newPage: () => any; }, url: string) {
+async function homepage(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; }) => any; }, url:String) {
 
+  const context = await browser.newContext(
+    {
+      headless: false,
+      ignoreHTTPSErrors: true,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
+    });
   const page = await browser.newPage();
 
 
@@ -252,24 +255,37 @@ async function homepage(browser: { newPage: () => any; }, url: string) {
 
 }
 
-async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean; proxy: { server: string; }; }) => any; }, cato: Array<string>) {
-  const p_page = await browser.newPage();
+async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0: { headless: boolean; ignoreHTTPSErrors: boolean;  }) => any; }, cato: Array<string>) {
   const context = await browser.newContext(
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-   for (let i = 0; i < cato.length; i++) {
+    const p_page = await browser.newPage();
+
+  createFile('shopify-merchantgenius.txt')
+
+  for (let i = 0; i < cato.length; i++) {
     const filename = cato[i]
     const url = 'https://www.merchantgenius.io/shop/date/' + filename
     console.log('dig url published on ', url)
     let domains: Array<string> = []
- 
-    await p_page.goto(url)
+
+
+    await p_page.goto(url,{timeout:0})
     // console.log(await p_page.content())
     const shopurls = p_page.locator('[href^="/shop/url/"]')
+    const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
+    console.log('loading exisit domain', history.length)
+    
+    const tmp=p_page.locator('div.container:nth-child(4) > table:nth-child(1)').textContent()
+    const url_count=tmp.split('A total of').pop().split('stores')[0]
+    console.log('total count in page',url_count,'we detected ',await shopurls.count())
 
+    if(await shopurls.count()<history.length){
+      console.log('there is need to   saving')
+    }else{
 
     for (let i = 0; i < await shopurls.count(); i++) {
       const url = await shopurls.nth(i).getAttribute('href')
@@ -280,53 +296,46 @@ async function leibiexiangqing(browser: { newPage: () => any; newContext: (arg0:
         domains.push(domain)
         console.log('bingo', domain)
 
-        const catohistory = createFile('shopify-merchantgenius.txt')
-        console.log('loading exisit domain', catohistory.length)
-        const log1 = fs.createWriteStream('shopify-merchantgenius.txt', { flags: 'a' });
-          
-        const history = createFile("merchantgenius/shopify-" + filename + ".txt")
-        const log = fs.createWriteStream("merchantgenius/shopify-" + filename + ".txt", { flags: 'a' });
-    
-    
-        if (catohistory.includes(domain) == false) {
-          log1.write(domain + "\n");
-        }
-        if (history.includes(domain) == false) {
-          log.write(domain + "\n");
-        }
-        log1.end();
-
-        log.end();
-
       }
     }
-    // const uniqdomains = Array.from(new Set(domains));
-    // console.log('founded domains', uniqdomains.length, ' under ', filename)
-    // console.log('============start saving==========', filename)
+    const uniqdomains = Array.from(new Set(domains));
+    console.log('founded domains', uniqdomains.length, ' under ', filename)
+    console.log('============start saving==========', filename)
 
-    // savedomains(uniqdomains, filename)
+    createFile("merchantgenius/shopify-" + filename + ".txt")
+    savedomains(uniqdomains, filename)
     console.log('============finish saving==========', filename)
 
   }
-
+  }
 }
 function savedomains(uniqdomains: Array<string>, filename: string) {
 
-
+  const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
+  console.log('loading exisit domain', catohistory.length)
+  const log1 = fs.createWriteStream('shopify-merchantgenius.txt', { flags: 'a' });
   // console.log('saving domain to index text',uniqdomains[i])
   const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
-  console.log('loading exisit domain', history.length)
+  console.log('loading exisit domain', catohistory.length)
 
+  const log = fs.createWriteStream("merchantgenius/shopify-" + filename + ".txt", { flags: 'a' });
 
   for (let i = 0; i < uniqdomains.length; i++) {
 
+    if (catohistory.includes(uniqdomains[i]) == false) {
+      log1.write(uniqdomains[i] + "\n");
+    }
     // console.log('saving domain to ',"merchantgenius/shopify-" + filename + ".txt")
 
 
     // on new log entry ->
-
+    if (history.includes(uniqdomains[i]) == false) {
+      log.write(uniqdomains[i] + "\n");
+    }
   }
+  log1.end();
 
+  log.end();
 
 
 }
@@ -339,15 +348,15 @@ app.get("/:targetName", async (req: Request, res: Response) => {
     const context = await browser.newContext(
       {
         headless: false,
-        ignoreHTTPSErrors: true,
-        proxy: { server: 'socks5://127.0.0.1:1080' },
+        ignoreHTTPSErrors: true
+        // proxy: { server: 'socks5://127.0.0.1:1080' },
       });
 
     const cato = await homepage(browser, '')
     const uniqdomains = await leibiexiangqing(browser, cato)
 
   } catch (error) {
-    console.log('error===')
+    console.log('error===',error)
 
 
   }
