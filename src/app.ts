@@ -293,12 +293,12 @@ async function leibiexiangqing(cato: Array<string>) {
     const url = 'https://www.merchantgenius.io/shop/date/' + filename
 
 
-    const history = await upsertFile("./merchantgenius/shopify-" + filename + ".txt")
+    const history: Array<string> = await upsertFile("./merchantgenius/shopify-" + filename + ".txt")
     console.log(filename,' contains ',history.length)
     if (history.length ==1) {
       console.log('dig url published on ', url)
 
-      await p_page.goto(url)
+      await p_page.goto(url, { timeout: 0 })
       // await p_page.goto(url, { timeout: 0 })
 
       // console.log(await p_page.content())
@@ -317,15 +317,16 @@ async function leibiexiangqing(cato: Array<string>) {
         for (let i = 0; i < await shopurls.count(); i++) {
           const url = await shopurls.nth(i).getAttribute('href')
           const domain = url.split('/shop/url/').pop()
-          if (domains.includes(domain)) {
+          if (history.includes(domain)) {
 
           } else {
             domains.push(domain)
+            history.push(domain)
             console.log('bingo', domain)
 
           }
         }
-        const uniqdomains = Array.from(new Set(domains));
+        const uniqdomains = Array.from(new Set(history));
         console.log('founded domains', uniqdomains.length, ' under ', filename)
         console.log('============start saving==========', filename)
 
