@@ -124,7 +124,7 @@ async function get_shopify_defaut_sitemap(url: string) {
 
 
   }
-  
+
   return Array.from(new Set(url_list));
 }
 function check_url_cato(url: string) {
@@ -174,6 +174,9 @@ async function checkstoreispassword(url: string) {
 
 
 async function upsertFile(name: string) {
+  console.log('is file ok?')
+  myMkdirSync(path.dirname(name));
+
   try {
     // try to read file
     await fs.promises.readFile(name)
@@ -181,21 +184,24 @@ async function upsertFile(name: string) {
     // create empty file, because it wasn't found
     await fs.promises.writeFile(name, '')
   }
+  return fs.readFileSync(name).toString().replace(/\r\n/g, '\n').split('\n');
+
 }
 
 
-var myMkdirSync = function(dir: String){
-  if (fs.existsSync(dir)){
-      return
+var myMkdirSync = function (dir: String) {
+  if (fs.existsSync(dir)) {
+    console.log('is parent dir ok?')
   }
 
-  try{
-      fs.mkdirSync(dir)
-  }catch(err){
-      if(err.code == 'ENOENT'){
-          myMkdirSync(path.dirname(dir)) //create parent dir
-          myMkdirSync(dir) //create dir
-      }
+  try {
+    fs.mkdirSync(dir)
+  } catch (err) {
+    if (err.code == 'ENOENT') {
+      console.log('parent dir',dir)
+      myMkdirSync(path.dirname(dir)) //create parent dir
+      myMkdirSync(dir) //create dir
+    }
   }
 }
 
@@ -203,20 +209,19 @@ var myMkdirSync = function(dir: String){
 
 function createFile(filename: string) {
 
-  myMkdirSync(path.dirname(filename));
-
   fs.open(filename, 'r', function (err: any, fd: any) {
     if (err) {
       fs.writeFile(filename, '', function (err: any) {
-        if (err) {
-          console.log(err);
-        }
+        // if (err) {
+        //   console.log(err);
+        // }
         console.log("The file was saved!", filename);
       });
     } else {
       console.log("The file exists!", filename);
     }
   });
+
 }
 
 
@@ -235,12 +240,12 @@ async function homepage(url: String) {
   await page.goto('https://www.merchantgenius.io')
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
-  createFile('shopify-catalog.txt')
-  createFile('shopify-merchantgenius.txt')
+  await upsertFile('./shopify-catalog.txt')
+  await upsertFile('./shopify-merchantgenius.txt')
 
   const cato = []
-  let diff_cato=[]
-  let diff:boolean=false
+  let diff_cato = []
+  let diff: boolean = false
   for (let i = 0; i < await yuefen.count(); i++) {
     const suburl = await yuefen.nth(i).getAttribute('href')
     const filename = suburl.split('/').pop()
@@ -248,15 +253,14 @@ async function homepage(url: String) {
     const url = 'https://www.merchantgenius.io' + suburl
     console.log(url)
     // <a href="/shop/date/2020-08-29"
-    const history = fs.readFileSync('shopify-catalog.txt').toString().replace(/\r\n/g, '\n').split('\n');
-    const log = fs.createWriteStream('shopify-catalog.txt', { flags: 'a' });
-    createFile("merchantgenius/shopify-" + filename + ".txt")
+    const history = fs.readFileSync('./shopify-catalog.txt').toString().replace(/\r\n/g, '\n').split('\n');
+    const log = fs.createWriteStream('./shopify-catalog.txt', { flags: 'a' });
 
     // on new log entry ->
     console.log(history.includes(url))
     if (history.includes(url) == false) {
       log.write(url + "\n");
-      diff=true
+      diff = true
       diff_cato.push(filename)
     }
     // you can skip closing the stream if you want it to be opened while
@@ -287,42 +291,52 @@ async function leibiexiangqing(cato: Array<string>) {
   for (let i = 0; i < cato.length; i++) {
     const filename = cato[i]
     const url = 'https://www.merchantgenius.io/shop/date/' + filename
-    console.log('dig url published on ', url)
 
-    
-    await p_page.goto(url, { timeout: 0 })
-    // console.log(await p_page.content())
-    const shopurls = p_page.locator('.blogImage [href^="/shop/url/"]')
-    const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
-    console.log('loading exisit domain', history.length)
 
-    const tmp = p_page.locator('div.container:nth-child(4)')
-    const t  =await tmp.textContent()
-    const url_count = t.split('stores were found.')[0].split('A total of ')[1]
-    console.log('total count in page', url_count, 'we detected ', await shopurls.count())
+    const history = await upsertFile("./merchantgenius/shopify-" + filename + ".txt")
+    console.log(filename,' contains ',history.length)
+    if (history.length ==1) {
+      console.log('dig url published on ', url)
 
-    if (url_count < history.length) {
-      console.log('there is need to   saving')
-    } else {
+      await p_page.goto(url)
+      // await p_page.goto(url, { timeout: 0 })
 
-      for (let i = 0; i < await shopurls.count(); i++) {
-        const url = await shopurls.nth(i).getAttribute('href')
-        const domain = url.split('/shop/url/').pop()
-        if (domains.includes(domain)) {
+      // console.log(await p_page.content())
+      const shopurls = p_page.locator('.blogImage [href^="/shop/url/"]')
+      console.log('loading exisit domain', history.length)
 
-        } else {
-          domains.push(domain)
-          console.log('bingo', domain)
+      const tmp = p_page.locator('div.container:nth-child(4)')
+      const t = await tmp.textContent()
+      const url_count = t.split('stores were found.')[0].split('A total of ')[1]
+      console.log('total count in page', url_count, 'we detected ', await shopurls.count())
 
+      if (url_count < history.length) {
+        console.log('there is need to   saving')
+      } else {
+
+        for (let i = 0; i < await shopurls.count(); i++) {
+          const url = await shopurls.nth(i).getAttribute('href')
+          const domain = url.split('/shop/url/').pop()
+          if (domains.includes(domain)) {
+
+          } else {
+            domains.push(domain)
+            console.log('bingo', domain)
+
+          }
         }
+        const uniqdomains = Array.from(new Set(domains));
+        console.log('founded domains', uniqdomains.length, ' under ', filename)
+        console.log('============start saving==========', filename)
+
+        savedomains(uniqdomains, filename)
+        console.log('============finish saving==========', filename)
+
       }
-      const uniqdomains = Array.from(new Set(domains));
-      console.log('founded domains', uniqdomains.length, ' under ', filename)
-      console.log('============start saving==========', filename)
+    }
+    else {
 
-      savedomains(uniqdomains, filename)
-      console.log('============finish saving==========', filename)
-
+      console.log('this cato has been scraped', cato[i])
     }
   }
   return Array.from(new Set(domains));
@@ -336,7 +350,7 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
   const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
   console.log('loading exisit domain', catohistory.length)
 
-  const log = fs.createWriteStream("merchantgenius/shopify-" + filename + ".txt", { flags: 'a' });
+  const log = fs.createWriteStream("merchantgenius/shopify-" + filename + ".txt", { flags: 'w' });
 
   for (let i = 0; i < uniqdomains.length; i++) {
 
@@ -360,22 +374,22 @@ app.get("/:targetName", async (req: Request, res: Response) => {
 
   try {
 
-    const diff_cato = await homepage( '')
-    if(diff_cato.length>0){
-    const uniqdomains = await leibiexiangqing( diff_cato)
-    // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
-    for (let i = 0; i < uniqdomains.length; i++) {
-      createFile('sitemaps/'+uniqdomains[i]+'-sitemap-urls.txt')
-      const url_list =await get_shopify_defaut_sitemap(uniqdomains[i])
-      const log = fs.createWriteStream('sitemaps/'+uniqdomains[i]+'-sitemap-urls.txt', { flags: 'a' });
-      if(url_list.length>0){
-        for (let i = 0; i < url_list.length; i++) {
-          log.write(url_list[i]+'\n')
+    const diff_cato = await homepage('')
+    if (diff_cato.length > 0) {
+      const uniqdomains = await leibiexiangqing(diff_cato)
+      // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
+      for (let i = 0; i < uniqdomains.length; i++) {
+        await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
+        const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+        const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
+        if (url_list.length > 0) {
+          for (let i = 0; i < url_list.length; i++) {
+            log.write(url_list[i] + '\n')
+          }
         }
       }
-    }
 
-  }
+    }
   } catch (error) {
     console.log('error===', error)
 
@@ -466,16 +480,16 @@ app.listen(8083, () => {
   // cron.schedule("* * * * *", function () {
   //   // API call goes here
   //   console.log("running a task every minute");
-    const options = {
-      hostname: 'localhost',
-      port: 8083,
-      path: '/todos',
-      method: 'GET'
-    }    
-    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
-      if (!error && response.statusCode == 200) {
-        console.log(body) // Print the google web page.
-      }
-    })
+  const options = {
+    hostname: 'localhost',
+    port: 8083,
+    path: '/todos',
+    method: 'GET'
+  }
+  http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
+    if (!error && response.statusCode == 200) {
+      console.log(body) // Print the google web page.
+    }
+  })
   // })
 })
