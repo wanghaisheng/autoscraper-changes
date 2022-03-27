@@ -17,13 +17,16 @@ jobs:
               with:
                 node-version: 15.x
             - name: Install JS testing dependencies
-              run: npm ci
+              run: npm install
             - name: Install Playwright dependencies
               run: npx playwright install-deps
             - name: Install browsers
               run: npx playwright install
             - run: npm run build --if-present
             - run: npm run start
-            - run: |
-                  curl --request GET \
-                  --url 'localhost:8082/' 
+            - name: Commit & Push changes
+              uses: actions-js/push@master
+              with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                branch: main
+                force: true
