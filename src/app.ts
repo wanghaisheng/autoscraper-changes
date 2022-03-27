@@ -6,7 +6,7 @@ import axios from 'axios';
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
-const zipper =require("zip-local")
+// const zipper =require("zip-local")
 // const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
@@ -522,7 +522,7 @@ app.get("/top500", async (req: Request, res: Response) => {
   }
   }
   // compress 
-  zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
+  // zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
   // upload
 })
 
