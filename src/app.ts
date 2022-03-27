@@ -6,6 +6,7 @@ import axios from 'axios';
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
+const zipper =require("zip-local")
 // const cron = require('node-cron')
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
@@ -50,6 +51,21 @@ async function searchsitemap(url: string) {
 
   }
   return sitemapcandidate
+
+}
+
+function  isneedproxy(url:string){
+
+  return http.get(url, function (error: any, response: { statusCode: number; }, body: any) {
+    if (!error && response.statusCode == 200) {
+      return true
+    }else{
+
+      return false
+    }
+
+  })
+
 
 }
 
@@ -204,7 +220,7 @@ async function checkstoreispassword(url: string) {
     });
   const page = await browser.newPage();
 
-  const res = await page.goto(url);
+  const res = await page.goto(url, { timeout: 0 });
   const redirect_url = res.url
   if (redirect_url.includes('password')) {
     console.log('this site is under construction')
@@ -263,12 +279,12 @@ async function homepage(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      // proxy: { server: 'socks5://127.0.0.1:1080' },
+      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-  const page = await browser.newPage();
+  const page = await context.newPage();
 
 
-  await page.goto('https://www.merchantgenius.io')
+  await page.goto('https://www.merchantgenius.io', { timeout: 0 })
   // console.log(await page.content())
   const yuefen = page.locator('xpath=//html/body/main/div/div[2]/a')
   await upsertFile('./shopify-catalog.txt')
@@ -315,7 +331,7 @@ async function leibiexiangqing(cato: Array<string>) {
       ignoreHTTPSErrors: true,
       proxy: { server: 'socks5://127.0.0.1:1080' },
     });
-  const p_page = await browser.newPage();
+  const p_page = await context.newPage();
   let domains: Array<string> = []
 
 
@@ -505,6 +521,9 @@ app.get("/top500", async (req: Request, res: Response) => {
     }
   }
   }
+  // compress 
+  zipper.sync.zip('./sitemaps').compress().save('./sitemaps-500.zip')
+  // upload
 })
 
 
@@ -623,8 +642,8 @@ app.listen(8083, () => {
   const options = {
     hostname: 'localhost',
     port: 8083,
-    path: '/top500',
-    // path: '/merchantgenius',
+    // path: '/top500',
+    path: '/merchantgenius',
     method: 'GET'
   }
   http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
