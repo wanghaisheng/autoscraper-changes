@@ -2,6 +2,7 @@
 const { chromium, webkit, firefox } = require("playwright");
 const http = require('http');
 const express = require('express');
+import axios from 'axios';
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
@@ -9,12 +10,18 @@ const fs = require("fs");
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 
-var path = require('path');
 
+const cheerio = require('cheerio');
+
+var path = require('path');
 const app: Application = express();
 app.use(cors());
 
 
+
+
+const info = 'socks://127.0.0.1:1080';
+const agent = new SocksProxyAgent(info);
 async function searchsitemap(url: String) {
   const browser = await webkit.launch();
   // Create a new incognito browser context.
@@ -48,7 +55,56 @@ async function searchsitemap(url: String) {
 
 }
 
-async function parseSitemap(url: string) {
+function diff_sitemapindex_ornot(url: string) {
+  let subsitemaps: Array<string> = []
+  let locs: Array<string> = []
+
+
+
+
+  https.get(url, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8'
+    }, agent
+  }, function (res) {
+    var response_data = '';
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      response_data += chunk;
+    });
+
+    res.on('end', function () {
+      const root = parse(response_data);
+      const $ = cheerio.load(response_data);
+
+      console.log('=============', $.html())
+      console.log($('sitemapindex'));
+      // const data = JSON.parse(root);
+      // console.log(data)
+      // let subsitemaps = data['sitemapindex']
+      // let locs = data['loc']
+      // console.log('sitemap element', subsitemaps.length)
+      // console.log('loc element', locs.length)
+
+
+
+    });
+    res.on('error', function (err) {
+      console.log('Got error: ' + err.message);
+    });
+  });
+
+
+
+
+
+
+  return [subsitemaps, locs]
+
+}
+
+async function diff_sitemapindex_ornot_pl(url: string) {
+
   const browser = await webkit.launch();
   // Create a new incognito browser context.
   const context = await browser.newContext(
@@ -58,49 +114,71 @@ async function parseSitemap(url: string) {
       proxy: { server: 'socks5://127.0.0.1:1080' }
       ,
     });
-  const page = await browser.newPage();
-  const url_list: Array<string> = []
+  const page = await context.newPage();
+
   const res = await page.goto(url);
-  if (res.status() == 200) {
+  // console.log(await res.body())
+  const $ = cheerio.load(await res.body());
+// 
+ var list=[]
+  console.log('=============',)
+  let subsitemaps  =$('sitemap').find('loc')
+  .toArray()
+  .map((element: any) => $(element).text())
+    
+  let urlset = $('url loc').text().split('\n').map((el: string) => el.trim()).filter((a:any)=>a)
+  urlset =$('url').find('loc')
+  .toArray()
+  .map((element: any) => $(element).text())
+  console.log('sitemapindex/sitemap',url,subsitemaps.length)
+  console.log('urlset/url',url,urlset.length)
+  await browser.close()
+  return [subsitemaps,urlset]
 
-    const sitemaps = page.locator('sitemap')
-    const sitemaps_count = await sitemaps.count()
-    if (sitemaps_count > 1) {
-      const cato = []
-      for (let i = 0; i < sitemaps_count; i++) {
-        const sitemap_url = sitemaps.nth(i).locator('loc').textContent()
-        await page.goto(sitemap_url)
-        const urls = page.locator('loc')
-        for (let i = 0; i < await urls.count(); i++) {
-          const url = urls.nth(i).textContent()
-          url_list.push(url)
-        }
+}
+async function parseSitemap(original_sitemapurl: string) {
+  const url_list: Array<string> = []
+  const [subsitemaps, locs] = await diff_sitemapindex_ornot_pl(original_sitemapurl)
+  if (subsitemaps.length > 1) {
+    console.log(subsitemaps.filter((a: any)=>a))
+    console.log(original_sitemapurl, ' got sub sitemap', subsitemaps.length)
+    for (let i = 0; i < subsitemaps.length; i++) {
+      const sitemap_url = subsitemaps[i]
+      const [[], locs] = await diff_sitemapindex_ornot_pl(sitemap_url)
+      for (let i = 0; i < locs.length; i++) {
+        url_list.push(locs[i])
       }
-    } else {
-
-      const urls = page.locator('loc')
-      for (let i = 0; i < await urls.count(); i++) {
-        const url = urls.nth(i).textContent()
-        url_list.push(url)
-      }
-
-
     }
-  } else {
+  } else if (locs.length > 0) {
+    console.log(locs.filter((a: any)=>a))
+
+    for (let i = 0; i < locs.length; i++) {
+      url_list.push(locs[i])
+    }
+  }
+  else {
 
     console.log('this url is not a valid sitemap url')
 
   }
+
   return url_list
 
 
 }
 
+// 函数实现，参数 delay 单位 毫秒 ；
+function sleep(delay:number) {
+  for (var t = Date.now(); Date.now() - t <= delay;);
+}
+
+// 调用方法，同步执行，阻塞后续程序的执行；
 async function get_shopify_defaut_sitemap(url: string) {
   let url_list_tmp: Array<string> = []
   let url_list: Array<string> = []
 
-  const default_sitemap_url = new URL(url).hostname + '/sitemap.xml'
+  const default_sitemap_url = "https://" + new URL(url).hostname + '/sitemap.xml'
+  console.log('domain-', url, '--sitemapurl', default_sitemap_url)
   const default_sitemap_url_list = await parseSitemap(default_sitemap_url)
   if (default_sitemap_url_list.length == 0) {
     console.log('try search sitemap url')
@@ -109,6 +187,8 @@ async function get_shopify_defaut_sitemap(url: string) {
     if (sitemapcandiates.length > 1) {
       for (let i = 0; i < sitemapcandiates.length; i++) {
         const sitemapcandiates_url = sitemapcandiates[i]
+        sleep(500);
+
         const sitemapcandiates_url_list = await parseSitemap(sitemapcandiates_url)
         url_list.push.apply(url_list, sitemapcandiates_url_list)
       }
@@ -198,7 +278,7 @@ var myMkdirSync = function (dir: String) {
     fs.mkdirSync(dir)
   } catch (err) {
     if (err.code == 'ENOENT') {
-      console.log('parent dir',dir)
+      console.log('parent dir', dir)
       myMkdirSync(path.dirname(dir)) //create parent dir
       myMkdirSync(dir) //create dir
     }
@@ -207,22 +287,6 @@ var myMkdirSync = function (dir: String) {
 
 
 
-function createFile(filename: string) {
-
-  fs.open(filename, 'r', function (err: any, fd: any) {
-    if (err) {
-      fs.writeFile(filename, '', function (err: any) {
-        // if (err) {
-        //   console.log(err);
-        // }
-        console.log("The file was saved!", filename);
-      });
-    } else {
-      console.log("The file exists!", filename);
-    }
-  });
-
-}
 
 
 async function homepage(url: String) {
@@ -294,8 +358,8 @@ async function leibiexiangqing(cato: Array<string>) {
 
 
     const history: Array<string> = await upsertFile("./merchantgenius/shopify-" + filename + ".txt")
-    console.log(filename,' contains ',history.length)
-    if (history.length ==1) {
+    console.log(filename, ' contains ', history.length)
+    if (history.length == 1) {
       console.log('dig url published on ', url)
 
       await p_page.goto(url, { timeout: 0 })
@@ -349,7 +413,7 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
   const log1 = fs.createWriteStream('shopify-merchantgenius.txt', { flags: 'a' });
   // console.log('saving domain to index text',uniqdomains[i])
   const history = fs.readFileSync("merchantgenius/shopify-" + filename + ".txt").toString().replace(/\r\n/g, '\n').split('\n');
-  console.log('loading exisit domain', catohistory.length)
+  console.log('loading exisit domain', history.length)
 
   const log = fs.createWriteStream("merchantgenius/shopify-" + filename + ".txt", { flags: 'w' });
 
@@ -370,7 +434,89 @@ function savedomains(uniqdomains: Array<string>, filename: string) {
 
 }
 
-app.get("/:targetName", async (req: Request, res: Response) => {
+
+async function top500() {
+  const browser = await webkit.launch();
+
+  const context = await browser.newContext(
+    {
+      headless: false,
+      ignoreHTTPSErrors: true,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
+    });
+  await upsertFile('./shopify-top-500-afership.txt')
+  const content = JSON.parse(await fs.promises.readFile('./page-data.json'))
+  console.log(content)
+  const json = content['result']['pageContext']['story']['content']['storeList']
+
+  for (let i = 0; i < json.length; i++) {
+    let item = json[i]
+    console.log(item)
+    const content = [item['url'], item['country'], item['company_name'], item['monthly_traffic'], item['alexa_url_info']['rank']]
+
+    // "company_name": "BBC Shop US",
+    // "country": "USA",
+    // "country_name": "United States of America",
+    // "domain": "shop.bbc.com",
+    // "ecommerce_categories": [
+    //   {
+    //     "title": "entertainment",
+    //     "path": "Entertainment"
+    //   }
+    // ],
+    // "ecommerce_platform": "shopify",
+    // "logo": "https://cella.s3.amazonaws.com/b/b/c/shop.bbc.com/logo/20200722_030712_shop.bbc.com.png",
+    // "monthly_traffic": "416,700,000",
+    // "url": "http://shop.bbc.com",
+    // "alexa_url_info": {
+    //   "rank": "83"
+    // }
+    const log = fs.createWriteStream('./shopify-top-500-afership.txt', { flags: 'a' });
+
+    // on new log entry ->
+    log.write(content + "\n");
+    // you can skip closing the stream if you want it to be opened while
+    // a program runs, then file handle will be closed
+    log.end();
+
+
+  }
+
+
+}
+app.get("/scrapetop500", async (req: Request, res: Response) => {
+  await top500()
+})
+app.get("/top500", async (req: Request, res: Response) => {
+  const uniqdomains_: Array<string> = await upsertFile("shopify-top-500-afership.txt")
+  const uniqdomains = uniqdomains_.map((item) => item.split(',')[0])
+  for (let i = 0; i < uniqdomains.length; i++) {
+    console.log('starting to do ==========',uniqdomains[i])
+    let filename=''
+
+    if(uniqdomains[i].includes('https://')){
+      filename =uniqdomains[i].replace('https://','')
+    }else  if(uniqdomains[i].includes('http://')){
+      filename =uniqdomains[i].replace('http://','')
+      console.log('there is http',filename)
+    }else{
+      filename=uniqdomains[i]
+    }
+    console.log('sitemaps file is',filename)
+    await upsertFile('sitemaps/' + filename+ '-sitemap-urls.txt')
+    const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
+    const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
+    if (url_list.length > 0) {
+      for (let i = 0; i < url_list.length; i++) {
+        log.write(url_list[i] + '\n')
+      }
+    }
+  }
+})
+
+
+
+app.get("/merchantgenius", async (req: Request, res: Response) => {
 
 
   try {
@@ -484,7 +630,8 @@ app.listen(8083, () => {
   const options = {
     hostname: 'localhost',
     port: 8083,
-    path: '/todos',
+    path: '/top500',
+    // path: '/merchantgenius',
     method: 'GET'
   }
   http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
