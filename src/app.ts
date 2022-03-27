@@ -10,7 +10,6 @@ const fs = require("fs");
 import https from 'https';
 import { GoogleSERP } from 'serp-parser'
 
-
 const cheerio = require('cheerio');
 
 var path = require('path');
@@ -20,9 +19,7 @@ app.use(cors());
 
 
 
-const info = 'socks://127.0.0.1:1080';
-const agent = new SocksProxyAgent(info);
-async function searchsitemap(url: String) {
+async function searchsitemap(url: string) {
   const browser = await webkit.launch();
   // Create a new incognito browser context.
   const context = await browser.newContext(
@@ -32,9 +29,9 @@ async function searchsitemap(url: String) {
       proxy: { server: 'socks5://127.0.0.1:1080' }
       ,
     });
-  const page = await browser.newPage();
+  const page = await context.newPage();
 
-  await page.goto('https://www.google.com/search?q=' + url + '++sitemap.xml');
+  await page.goto('https://www.google.com/search?q=' + url + '++sitemap.xml', { timeout: 0 });
 
 
   const parser = new GoogleSERP(await page.content());
@@ -42,11 +39,12 @@ async function searchsitemap(url: String) {
 
   const sitemapcandidate: Array<string> = []
   for (let i = 0; i < parser.serp['organic'].length; i++) {
-    let url = parser.serp['organic'][i]['url']
-    if (url.includes('.xml')) {
+    let result = parser.serp['organic'][i]['url']
+    const rootdomain = rootdomainfromurl(url)
+    if (result.includes('.xml') || result.includes(rootdomain)) {
 
-      fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + url)
-      sitemapcandidate.push(url)
+      fs.writeFileSync("shopify-sitemap-mapping.txt", +',' + result)
+      sitemapcandidate.push(result)
     }
     //use i instead of 0
 
@@ -55,51 +53,20 @@ async function searchsitemap(url: String) {
 
 }
 
-function diff_sitemapindex_ornot(url: string) {
-  let subsitemaps: Array<string> = []
-  let locs: Array<string> = []
+function rootdomainfromurl(url: string | URL) {
+  console.log('url for root domain',url)
 
+  if (typeof url === 'string')
+      url = new URL(url);
+  const domain = url.hostname;
+  const elems = domain.split('.');
+  const iMax = elems.length - 1;
 
+  const elem1 = elems[iMax - 1];
+  const elem2 = elems[iMax];
 
-
-  https.get(url, {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8'
-    }, agent
-  }, function (res) {
-    var response_data = '';
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-      response_data += chunk;
-    });
-
-    res.on('end', function () {
-      const root = parse(response_data);
-      const $ = cheerio.load(response_data);
-
-      console.log('=============', $.html())
-      console.log($('sitemapindex'));
-      // const data = JSON.parse(root);
-      // console.log(data)
-      // let subsitemaps = data['sitemapindex']
-      // let locs = data['loc']
-      // console.log('sitemap element', subsitemaps.length)
-      // console.log('loc element', locs.length)
-
-
-
-    });
-    res.on('error', function (err) {
-      console.log('Got error: ' + err.message);
-    });
-  });
-
-
-
-
-
-
-  return [subsitemaps, locs]
+  const isSecondLevelDomain = iMax >= 3 && (elem1 + elem2).length <= 5;
+  return 'https://'+(isSecondLevelDomain ? elems[iMax - 2] + '.' : '') + elem1 + '.' + elem2;
 
 }
 
@@ -115,8 +82,8 @@ async function diff_sitemapindex_ornot_pl(url: string) {
       ,
     });
   const page = await context.newPage();
+  const res =await page.goto(url, { timeout: 0 })
 
-  const res = await page.goto(url);
   // console.log(await res.body())
   const $ = cheerio.load(await res.body());
 // 
@@ -139,7 +106,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
 async function parseSitemap(original_sitemapurl: string) {
   const url_list: Array<string> = []
   const [subsitemaps, locs] = await diff_sitemapindex_ornot_pl(original_sitemapurl)
-  if (subsitemaps.length > 1) {
+  if (subsitemaps.length > 0) {
     console.log(subsitemaps.filter((a: any)=>a))
     console.log(original_sitemapurl, ' got sub sitemap', subsitemaps.length)
     for (let i = 0; i < subsitemaps.length; i++) {
@@ -289,7 +256,7 @@ var myMkdirSync = function (dir: String) {
 
 
 
-async function homepage(url: String) {
+async function homepage(url: string) {
   const browser = await webkit.launch();
 
   const context = await browser.newContext(
@@ -445,6 +412,23 @@ async function top500() {
       // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   await upsertFile('./shopify-top-500-afership.txt')
+  const  rawjson=await upsertFile('./page-data.json')
+  if(rawjson.length==0){
+    const options = {
+      hostname: 'https://websites.am-static.com',
+      path: '/www/v3/aftership/page-data/store-list/top-500-shopify-stores/page-data.json',
+      // path: '/merchantgenius',
+      method: 'GET'
+    }
+    http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
+      if (!error && response.statusCode == 200) {
+        const log = fs.createWriteStream('./page-data.json', { flags: 'w' });
+        log.write(body)
+        log.end()
+      }
+    })
+
+  }
   const content = JSON.parse(await fs.promises.readFile('./page-data.json'))
   console.log(content)
   const json = content['result']['pageContext']['story']['content']['storeList']
@@ -488,8 +472,12 @@ app.get("/scrapetop500", async (req: Request, res: Response) => {
   await top500()
 })
 app.get("/top500", async (req: Request, res: Response) => {
-  const uniqdomains_: Array<string> = await upsertFile("shopify-top-500-afership.txt")
-  const uniqdomains = uniqdomains_.map((item) => item.split(',')[0])
+  let uniqdomains: Array<string> = await upsertFile("shopify-top-500-afership.txt")
+  uniqdomains = uniqdomains.map((item) => item.split(',')[0]).filter(a=>a)
+  uniqdomains = Array.from(new Set(uniqdomains))
+  console.log(uniqdomains)
+
+  console.log('qu chong hou domains',uniqdomains.length)
   for (let i = 0; i < uniqdomains.length; i++) {
     console.log('starting to do ==========',uniqdomains[i])
     let filename=''
@@ -503,14 +491,19 @@ app.get("/top500", async (req: Request, res: Response) => {
       filename=uniqdomains[i]
     }
     console.log('sitemaps file is',filename)
-    await upsertFile('sitemaps/' + filename+ '-sitemap-urls.txt')
+    const done =await upsertFile('sitemaps/' + filename+ '-sitemap-urls.txt')
+    if(done.length>1){
+      console.log('this shop has scraped urls')
+
+    }else{
     const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
     const log = fs.createWriteStream('sitemaps/' +filename+ '-sitemap-urls.txt', { flags: 'a' });
-    if (url_list.length > 0) {
+    if (url_list.length > 1) {
       for (let i = 0; i < url_list.length; i++) {
         log.write(url_list[i] + '\n')
       }
     }
+  }
   }
 })
 
@@ -522,14 +515,14 @@ app.get("/merchantgenius", async (req: Request, res: Response) => {
   try {
 
     const diff_cato = await homepage('')
-    if (diff_cato.length > 0) {
+    if (diff_cato.length > 1) {
       const uniqdomains = await leibiexiangqing(diff_cato)
       // const catohistory = fs.readFileSync('shopify-merchantgenius.txt').toString().replace(/\r\n/g, '\n').split('\n');
       for (let i = 0; i < uniqdomains.length; i++) {
         await upsertFile('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt')
         const url_list = await get_shopify_defaut_sitemap(uniqdomains[i])
         const log = fs.createWriteStream('sitemaps/' + uniqdomains[i] + '-sitemap-urls.txt', { flags: 'a' });
-        if (url_list.length > 0) {
+        if (url_list.length > 1) {
           for (let i = 0; i < url_list.length; i++) {
             log.write(url_list[i] + '\n')
           }
