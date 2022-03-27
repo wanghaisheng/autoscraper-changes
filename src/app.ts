@@ -2,7 +2,6 @@
 const { chromium, webkit, firefox } = require("playwright");
 const http = require('http');
 const express = require('express');
-import axios from 'axios';
 import { Request, Response, Application } from 'express';
 const cors = require("cors");
 const fs = require("fs");
@@ -17,9 +16,6 @@ var path = require('path');
 const app: Application = express();
 app.use(cors());
 
-
-
-
 async function searchsitemap(url: string) {
   const browser = await webkit.launch();
   // Create a new incognito browser context.
@@ -27,8 +23,7 @@ async function searchsitemap(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
 
@@ -94,8 +89,7 @@ async function diff_sitemapindex_ornot_pl(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
   const res =await page.goto(url, { timeout: 0 })
@@ -215,8 +209,7 @@ async function checkstoreispassword(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' }
-      ,
+      // proxy: { server: 'socks5://127.0.0.1:1080' }      ,
     });
   const page = await browser.newPage();
 
@@ -259,7 +252,8 @@ var myMkdirSync = function (dir: String) {
 
   try {
     fs.mkdirSync(dir)
-  } catch (err) {
+
+  } catch (err: any) {
     if (err.code == 'ENOENT') {
       console.log('parent dir', dir)
       myMkdirSync(path.dirname(dir)) //create parent dir
@@ -279,7 +273,7 @@ async function homepage(url: string) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+//      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const page = await context.newPage();
 
@@ -329,7 +323,7 @@ async function leibiexiangqing(cato: Array<string>) {
     {
       headless: false,
       ignoreHTTPSErrors: true,
-      proxy: { server: 'socks5://127.0.0.1:1080' },
+//      proxy: { server: 'socks5://127.0.0.1:1080' },
     });
   const p_page = await context.newPage();
   let domains: Array<string> = []
@@ -642,8 +636,8 @@ app.listen(8083, () => {
   const options = {
     hostname: 'localhost',
     port: 8083,
-    // path: '/top500',
-    path: '/merchantgenius',
+    path: '/top500',
+    // path: '/merchantgenius',
     method: 'GET'
   }
   http.get(options, function (error: any, response: { statusCode: number; }, body: any) {
