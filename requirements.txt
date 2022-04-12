@@ -4,6 +4,7 @@ lxml
 selenium-wire
 undetected_chromedriver
 peewee
+pyairtable
 playwright 
 colorlog 
 httpx
