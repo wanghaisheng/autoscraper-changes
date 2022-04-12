@@ -2,3 +2,4 @@ requests==2.25.0
 sitecrawl
 lxml
 selenium-wire
+undetected_chromedriver
