@@ -8,3 +8,4 @@ pyairtable
 playwright 
 colorlog 
 httpx
+webdriver_manager
