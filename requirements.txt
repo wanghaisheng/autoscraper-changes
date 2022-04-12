@@ -3,3 +3,7 @@ sitecrawl
 lxml
 selenium-wire
 undetected_chromedriver
+peewee
+playwright 
+colorlog 
+httpx
