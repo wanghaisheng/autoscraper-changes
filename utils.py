@@ -551,7 +551,7 @@ def get_undetected_webdriver():
             'no_proxy': 'localhost,127.0.0.1'
         }
     }
-    options = uc.ChromeOptions()
+    options = webdriver.ChromeOptions()
     options.add_argument("--no-sandbox")
     # options.add_argument("--headless")
     options.add_argument("--disable-dev-shm-usage")
