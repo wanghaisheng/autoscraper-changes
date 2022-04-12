@@ -560,7 +560,7 @@ def get_undetected_webdriver():
     if os.environ.get("GOOGLE_CHROME_BIN"):
         options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     # ChromeDriverManager().install()
-    Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+    # Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
     driver = ''
     if os.environ.get("CHROMEDRIVER_PATH"):
         executable_path = os.environ.get("CHROMEDRIVER_PATH")

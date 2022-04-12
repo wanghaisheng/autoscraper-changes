@@ -28,3 +28,24 @@ driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
 driver.get('http://nytimes.com')
 print(driver.title)
+
+#https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/347
+
+
+# from webdriver_manager.utils import get_browser_version_from_os
+
+# version = get_browser_version_from_os("google-chrome")
+
+# print(version)
+
+
+
+# # undetected_chromedriver==3.1.3
+# from undetected_chromedriver import Chrome
+
+# if __name__ == "__main__":
+#     ctx = Chrome(headless=True)
+#     try:
+#         ctx.get("https://www.baidu.com")
+#     finally:
+#         ctx.quit()
