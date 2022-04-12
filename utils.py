@@ -12,7 +12,6 @@ import seleniumwire.undetected_chromedriver as webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.utils import ChromeType
 import base64
 import signal
@@ -560,7 +559,10 @@ def get_undetected_webdriver():
     if os.environ.get("GOOGLE_CHROME_BIN"):
         options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     # ChromeDriverManager().install()
+    # Use with Chromium
     # Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+    # Use with Chrome
+    Service(ChromeDriverManager().install())
     driver = ''
     if os.environ.get("CHROMEDRIVER_PATH"):
         executable_path = os.environ.get("CHROMEDRIVER_PATH")
