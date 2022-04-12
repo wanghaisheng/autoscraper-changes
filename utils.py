@@ -21,6 +21,7 @@ from httpx import AsyncClient
 from colorlog import ColoredFormatter
 from urllib.parse import quote_plus
 import requests
+import json
 import math
 import os
 import random
@@ -80,41 +81,91 @@ def signalHandler(signal, frame):
 # from .util import *
 
 
-async def get_playright(proxy, url, headless: bool = True):
-    async with async_playwright() as playwright:
+async def get_playright(proxy:bool=False,headless:bool=True):
+    print('proxy',proxy,'headless',headless)
+    browser=''
+    playwright =await  async_playwright().start()
+    PROXY_SOCKS5 = "socks5://127.0.0.1:1080"
+    # browser=''
+    if proxy==False:
+        try:
+            print("start pl without proxy")
+            browser = await  playwright.firefox.launch(headless=headless)
+            print('start is ok')
+            return browser
 
-        if headless == '' or headless is None:
-            headless = True
-        PROXY_SOCKS5 = "socks5://127.0.0.1:1080"
-
-        if proxy is None:
-            try:
-                browser = await playwright.firefox.launch(headless=headless)
-                print('start is ok')
-                return browser
-            except:
-                print('pl start failed')
-
-        else:
+        except:
+            print('pl no proxy start failed')
             browserLaunchOptionDict = {
             "headless": headless,
             "proxy": {
                     "server": PROXY_SOCKS5,
             }
-            }
+            } 
             browser = await playwright.firefox.launch(**browserLaunchOptionDict)
-            # Open new page
-            if url is None or url == '':
-                page = await browser.new_page()
+            # Open new page    
+            return browser
+    else: 
+        print('proxy===',headless)
+        browserLaunchOptionDict = {
+        "headless": headless,
+        "proxy": {
+                "server": PROXY_SOCKS5,
+        }
+        } 
+        browser = await playwright.firefox.launch(**browserLaunchOptionDict)
+        # Open new page    
 
-                res = ''
-            else:
-                page = await browser.new_page()
-                res = await page.goto(url)
-            # print((await page.goto("1.html")).url)
-    return browser, page,res
+        return browser
 
+def write_file(new_contents,topic):
+    if not os.path.exists("web/README-{}.md".format(topic)):
+        open("web/README-{}.md".format(topic),'w').write('')
+    with open("web/README-{}.md".format(topic),'r',encoding='utf8') as f:
+        #去除标题
+        for _ in range(7):
+            f.readline()
 
+        old = f.read()
+    new = new_contents + old
+    with open("web/README-{}.md".format(topic), "w") as f:
+        f.write(new)
+def url_ok(url):
+    try:
+        response = requests.head(url)
+    except Exception as e:
+        # print(f"NOT OK: {str(e)}")
+        return False
+    else:
+        if response.status_code == 400 or response.status_code==404:
+            # print("OK")
+            print(f"NOT OK: HTTP response code {response.status_code}")
+
+            return False
+        else:
+
+            return True   
+
+def update_daily_json(filename,data_all):
+    if not os.path.exists(filename):
+        print('create a  new file',filename)
+        open(filename,'w').write('')
+    with open(filename,"r") as f:
+        content = f.read()
+        if not content:
+            m = {}
+        else:
+            m = json.loads(content)
+    
+    #将datas更新到m中
+    for data in data_all:
+        m.update(data)
+
+    # save data to daily.json
+
+    with open(filename,"w") as f:
+        json.dump(m,f)
+    
 def write_file(new_contents, topic):
     if not os.path.exists("web/README-{}.md".format(topic)):
         open("web/README-{}.md".format(topic), 'w').write('')

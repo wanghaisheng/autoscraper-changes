@@ -48,58 +48,82 @@ def scrape_uc(search_query="python", topic='upwork'):
         print('no result')
 
 
-async def scrape_data(search_query="python", topic='upwork'):
+async def scrape_pl(search_query="python", topic='upwork'):
     # time.sleep(random.randint(10,50))
     # Sends a request
     start = time.time()
     url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
     print('user home url', url)
-    browser,res = await  get_playright('',url, False)
+    browser = await  get_playright(False, False)
     context = await browser.new_context()
 
     page = await context.new_page()
     try:
-        print('goto url')
         res = await page.goto(url)
-        print(res)
         # print(parser.find(string=re.compile("found")))
         # print(parser.find_all(attrs={"data-test": "jobs-count"}))
-        prefix = 'https://www.upwork.com/search/jobs/url?q={}&per_page=50&sort=recency&page='
-        count =  page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)')
-        
-        print(await count.text_content())
 
-        tree = lxml.html.fromstring(url.content)
-        print(tree.cssselect("div.pt-20:nth-child(3)"))
-        # print('-',tree.xpath('/html/body/div[1]/div/span/div/div/main/div/div/div/div/div[2]/div/div/div/section/div[3]/div[1]/span/strong') )
-        print('===', parser.find_all('span', string=re.compile('jobs found')))
-        print('--', parser.find_all("span",
-                                    attrs={"data-test": "jobs-count"}))
-        pages = int(2980/50)+1
-        for page in range(pages):
-            url = requests.get(prefix+str(page), headers=headers)
-        # Parses the html output
-            parser = bs4.BeautifulSoup(url.content, 'lxml')
-            # Gathering all the information
-            titles = [i.text.replace("\n", "") for i in parser.find_all(
-                'a', class_="job-title-link break visited")]
-            print(len(titles))
-            urls = [i['href'] for i in parser.find_all(
-                'a', class_="job-title-link break visited")]
-            descriptions = [i.text for i in parser.find_all(
-                'span', class_="js-description-text")]
+        count =  page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)')
+        count =await count.text_content()
+
+        if ',' in count:
+            count=count.replace(',','')
+        print(count)
+        count=int(count)
+        pages = int(count/50)+1
+        result=[]
+        print(pages)
+        for i in range(pages):
+            print(i,'---')
+            prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&per_page=50&sort=recency'.format(search_query)
+            print('prefix',prefix)
+        #3089
+        # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
+        # 550            
+            url=prefix+'&page='+str(i+1)
+            print('goto url',url)
+            # page = await context.new_page()
+
+            await page.goto(url)
+            jobs=page.locator('.up-card-list-section')
+            jobcount=await jobs.count()
+            print('jobcount',jobcount)
+            if jobcount>0:
+                for i in range(jobcount):
+                    title= jobs.nth(i).locator("div > div> h4 >a")
+                    title=await title.text_content()
+                    print(title,'-')
+                    href=await jobs.nth(i).locator("div > div> h4 >a").get_attribute('href')
+                    tagscount=jobs.nth(i).locator('.up-skill-badge text-muted')
+                    tags=''
+                    for i in range(await tagscount.count()):
+                        tags=tags+','+await tagscount.nth(i).text_content()
+                    id =href.replace('/job/','').replace('/','')
+                    url='https://www.upwork.com'+href
+                    await page.goto(url)
+                    des=page.locator('.job-description')
+                    print('des',des)
+                    des=await des.text_content()
+                    print('des',des)
+
+                    des =des.strip().replace('\r','').replace('\n','')
+                    print('des',des)
 
             # Making a list of dicts
-            for i in range(10):
-                print(i)
-                job = f"{{ 'title' : '{titles[i]}', 'url' : 'https://upwork.com/{urls[i]}' , 'description' : '''{ descriptions[i] }''' }}"
-                jobs.append(eval(job))
+                    job = {"id":id,
+                    "url":url,
+                    "title":title,
+                    "tags":tags,
+                    "des":des
+                    }
+                    print('===',job)
+                    result.append(job)
     #     return jobs
         filename = 'data/'+topic+'/{}.json'.format(search_query)
 
         date = current_date()
         file = os.path.join(search_query, date, filename)
-        write_text(file, jobs)
+        write_text(file, result)
 
     except:
         print('error')
@@ -107,7 +131,8 @@ async def scrape_data(search_query="python", topic='upwork'):
 opts, args = getOpts()
 keywords = opts.keywords
 topic = opts.topic
+keywords='tiktok'
 # asyncio.run(scrape_data(search_query=keywords, topic=topic))
-scrape_uc(search_query=keywords, topic=topic)
+asyncio.run(scrape_pl(search_query=keywords, topic=topic))
 # scrape_data('youtube')
 # scrape_data('nft')
