@@ -70,12 +70,12 @@ async def scrape_pl(search_query="python", topic='upwork'):
             count=count.replace(',','')
         print(count)
         count=int(count)
-        pages = int(count/50)+1
+        pages = int(count/10)+1
         result=[]
         print(pages)
         for i in range(pages):
             print(i,'---')
-            prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&per_page=50&sort=recency'.format(search_query)
+            prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&sort=recency'.format(search_query)
             print('prefix',prefix)
         #3089
         # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
@@ -102,12 +102,12 @@ async def scrape_pl(search_query="python", topic='upwork'):
                     url='https://www.upwork.com'+href
                     await page.goto(url)
                     des=page.locator('.job-description')
-                    print('des',des)
+                    # print('des',des)
                     des=await des.text_content()
-                    print('des',des)
+                    # print('des',des)
 
                     des =des.strip().replace('\r','').replace('\n','')
-                    print('des',des)
+                    # print('des',des)
 
             # Making a list of dicts
                     job = {"id":id,
