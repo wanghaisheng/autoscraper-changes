@@ -588,8 +588,8 @@ def get_undetected_webdriver():
             options=options)
         else:
             print('start uc with proxy')
-
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),
+            service=Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service,
             options=options, seleniumwire_options=seleniumwire_options)
     return driver
 
