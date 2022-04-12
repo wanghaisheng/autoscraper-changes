@@ -567,9 +567,12 @@ def get_undetected_webdriver():
             options=options, executable_path=executable_path, seleniumwire_options=seleniumwire_options)
     else:
         if url_ok('www.google.com'):
+            print('start uc no proxy')
             driver = webdriver.Chrome(
             options=options)
         else:
+            print('start uc with proxy')
+
             driver = webdriver.Chrome(
             options=options, seleniumwire_options=seleniumwire_options)
     return driver
