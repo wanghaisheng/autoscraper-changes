@@ -28,6 +28,9 @@ jobs:
         run: apt list --installed
       - name: Remove Chrome
         run: sudo apt purge google-chrome-stable
+      # Chromium is already installed!
+      - name: Install software
+        run: sudo apt install -y chromium-browser        
       # 安装python依赖
       - name: Install dependencies
         run: |
