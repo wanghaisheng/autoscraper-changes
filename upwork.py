@@ -54,7 +54,7 @@ async def scrape_pl(search_query="python", topic='upwork'):
     start = time.time()
     url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
     print('user home url', url)
-    browser = await  get_playright(False, False)
+    browser = await  get_playright(False, True)
     context = await browser.new_context()
 
     page = await context.new_page()
