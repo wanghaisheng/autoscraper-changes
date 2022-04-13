@@ -135,7 +135,10 @@ async def scrape_pl(search_query="python", topic='upwork'):
                     "des":des
                     }
                     print('===',job)
-                    result.append(job)    #     return jobs
+                    result.append(job)  
+                    await asyncio.sleep(6)                     
+                     
+                      #     return jobs
         filename = 'data/'+topic+'/{}.json'.format(search_query)
 
         date = current_date()
