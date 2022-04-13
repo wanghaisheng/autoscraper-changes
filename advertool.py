@@ -27,8 +27,8 @@ for idx,url in enumerate(popular_shopify_stores):
         except:
                 print('no robots.txt')
                 undonedomain.append(domain)
-write_text('sitemapindex.json',results)
-write_text('noroto.txt',undonedomain)
+write_text('data/shopify/sitemapindex.json',results)
+write_text('data/shopify/noroto.txt',undonedomain)
 # adv.crawl('http://www.cettire.com', 'my_output_file.jl', follow_links=True)
 
 # # That's it! To open the file:
