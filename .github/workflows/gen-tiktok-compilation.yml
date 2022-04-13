@@ -1,8 +1,6 @@
 name: gen-tiktok-compilation
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
 jobs:
   scrape_and_email:
     runs-on: ubuntu-latest
