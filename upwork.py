@@ -7,6 +7,7 @@ import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
 import json
+import platform
 jobs = []
 
 # Headers to fake the request as browser to avoid blocking
@@ -19,6 +20,8 @@ async def get_playright(proxy:bool=False,headless:bool=True):
     playwright =await  async_playwright().start()
     PROXY_SOCKS5 = "socks5://127.0.0.1:1080"
     # browser=''
+    if 'Linux' in platform.system:
+        headless=True    
     if proxy==False:
         try:
             print("start pl without proxy")
