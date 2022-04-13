@@ -20,7 +20,7 @@ async def get_playright(proxy:bool=False,headless:bool=True):
     playwright =await  async_playwright().start()
     PROXY_SOCKS5 = "socks5://127.0.0.1:1080"
     # browser=''
-    if 'Linux' in platform.system:
+    if 'Linux' in platform.system():
         headless=True    
     if proxy==False:
         try:
