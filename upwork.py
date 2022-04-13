@@ -57,13 +57,13 @@ async def scrape_pl(search_query="python", topic='upwork'):
     browser = await  get_playright(False, True)
     context = await browser.new_context()
 
-    page = await context.new_page()
+    homepage = await context.new_page()
     try:
-        res = await page.goto(url)
+        res = await homepage.goto(url)
         # print(parser.find(string=re.compile("found")))
         # print(parser.find_all(attrs={"data-test": "jobs-count"}))
 
-        count =  page.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)')
+        count =  homepage.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)')
         count =await count.text_content()
 
         if ',' in count:
@@ -73,35 +73,38 @@ async def scrape_pl(search_query="python", topic='upwork'):
         pages = int(count/10)+1
         result=[]
         print(pages)
-        for i in range(pages):
-            print(i,'---')
+        for p in range(pages):
+            print(p,'---')
             prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&sort=recency'.format(search_query)
             print('prefix',prefix)
         #3089
         # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
         # 550            
-            url=prefix+'&page='+str(i+1)
+            url=prefix+'&page='+str(p+1)
             print('goto url',url)
-            # page = await context.new_page()
+            fenyepage = await context.new_page()
 
-            await page.goto(url)
-            jobs=page.locator('.up-card-list-section')
+            await fenyepage.goto(url)
+            jobs=fenyepage.locator('.up-card-list-section')
             jobcount=await jobs.count()
             print('jobcount',jobcount)
             if jobcount>0:
-                for i in range(jobcount):
+                for i in range(0,jobcount):
+                    print('no',i,'in this ',p)
                     title= jobs.nth(i).locator("div > div> h4 >a")
                     title=await title.text_content()
                     print(title,'-')
                     href=await jobs.nth(i).locator("div > div> h4 >a").get_attribute('href')
-                    tagscount=jobs.nth(i).locator('.up-skill-badge text-muted')
+                    tagscount=jobs.nth(i).locator('div.up-skill-wrapper>a')
                     tags=''
                     for i in range(await tagscount.count()):
                         tags=tags+','+await tagscount.nth(i).text_content()
                     id =href.replace('/job/','').replace('/','')
                     url='https://www.upwork.com'+href
-                    await page.goto(url)
-                    des=page.locator('.job-description')
+                    jobpage = await context.new_page()
+
+                    await jobpage.goto(url)
+                    des=jobpage.locator('.job-description')
                     # print('des',des)
                     des=await des.text_content()
                     # print('des',des)
@@ -118,6 +121,7 @@ async def scrape_pl(search_query="python", topic='upwork'):
                     }
                     print('===',job)
                     result.append(job)
+                    print('add one',i)
     #     return jobs
         filename = 'data/'+topic+'/{}.json'.format(search_query)
 
