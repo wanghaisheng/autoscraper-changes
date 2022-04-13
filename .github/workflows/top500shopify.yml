@@ -1,4 +1,4 @@
-name: appstorereviews
+name: top500shopify
 on:
   workflow_dispatch:
 jobs:
