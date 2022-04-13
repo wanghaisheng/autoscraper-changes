@@ -2,6 +2,7 @@ import requests
 import time
 import os
 import optparse
+import random
 import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
@@ -52,11 +53,13 @@ async def get_playright(proxy:bool=False,headless:bool=True):
 async def scrape_pl(search_query="python", topic='upwork'):
     # time.sleep(random.randint(10,50))
     # Sends a request
+
     start = time.time()
     url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
     print('user home url', url)
     browser = await  get_playright(False, True)
     context = await browser.new_context()
+    context.add_cookies(os.environ.get('UPWORK_COOKIE'))
 
     homepage = await context.new_page()
     try:
@@ -91,13 +94,16 @@ async def scrape_pl(search_query="python", topic='upwork'):
             print('jobcount',jobcount)
             if jobcount>0:
                 for i in range(0,jobcount):
+                    # time.sleep(random.randint(10, 30))    
                     print('no',i,'in this page',p)
                     title= jobs.nth(i).locator("div > div> h4 >a")
                     title=await title.text_content()
                     print(title,'-')
                     href=await jobs.nth(i).locator("div > div> h4 > a").get_attribute('href')
+                    print('111')
                     id =href.replace('/job/','').replace('/','')
                     url='https://www.upwork.com'+href
+                    print('222')
 
                     tagscount=jobs.nth(i).locator('div.up-skill-wrapper>a')
                     tags=''
@@ -107,8 +113,10 @@ async def scrape_pl(search_query="python", topic='upwork'):
                     jobpage = await context.new_page()
 
                     await jobpage.goto(url)
+
                     des=jobpage.locator('.job-description')
                     # print('des',des)
+
                     des=await des.text_content()
                     # print('des',des)
 
