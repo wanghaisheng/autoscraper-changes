@@ -6,7 +6,7 @@ import random
 import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
-
+import json
 jobs = []
 
 # Headers to fake the request as browser to avoid blocking
@@ -57,10 +57,12 @@ async def scrape_pl(search_query="python", topic='upwork'):
     start = time.time()
     url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
     print('user home url', url)
-    browser = await  get_playright(False, True)
+    browser = await  get_playright(False, False)
     context = await browser.new_context()
-    context.add_cookies(os.environ.get('UPWORK_COOKIE'))
-
+    context.add_cookies(
+                json.loads(
+os.environ.get('UPWORK_COOKIE')
+                ))
     homepage = await context.new_page()
     try:
         res = await homepage.goto(url)
