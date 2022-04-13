@@ -19,11 +19,21 @@ jobs:
         run: pip install  youtube_dl ffmpeg 
       - name: Run the scraping script
         run: bash gen-tiktok-compilation.sh 5
+      # 配置git
+      - name: Config git
+        run: |
+          git config --local user.email "ations@github.com"
+          git config --local user.name "github"
+          git remote set-url origin "https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}"
+          git pull --rebase
+      # 运行
+      - name: Run python
+        run: python upwork.py
 
       # 更新仓库
       - name: Update repo
         run: |
           git add .
-          git commit -m "auto update gen-tiktok-compilation"
+          git commit -m "auto update upwork"
           git pull
           git push -u origin main

@@ -81,7 +81,7 @@ async def scrape_pl(search_query="python", topic='upwork'):
         # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
         # 550            
             url=prefix+'&page='+str(p+1)
-            print('goto url',url)
+            print('deal page',p+1,url)
             fenyepage = await context.new_page()
 
             await fenyepage.goto(url)
@@ -90,17 +90,19 @@ async def scrape_pl(search_query="python", topic='upwork'):
             print('jobcount',jobcount)
             if jobcount>0:
                 for i in range(0,jobcount):
-                    print('no',i,'in this ',p)
+                    print('no',i,'in this page',p)
                     title= jobs.nth(i).locator("div > div> h4 >a")
                     title=await title.text_content()
                     print(title,'-')
-                    href=await jobs.nth(i).locator("div > div> h4 >a").get_attribute('href')
+                    href=await jobs.nth(i).locator("div > div> h4 > a").get_attribute('href')
+                    id =href.replace('/job/','').replace('/','')
+                    url='https://www.upwork.com'+href
+
                     tagscount=jobs.nth(i).locator('div.up-skill-wrapper>a')
                     tags=''
                     for i in range(await tagscount.count()):
                         tags=tags+','+await tagscount.nth(i).text_content()
-                    id =href.replace('/job/','').replace('/','')
-                    url='https://www.upwork.com'+href
+
                     jobpage = await context.new_page()
 
                     await jobpage.goto(url)
@@ -120,9 +122,7 @@ async def scrape_pl(search_query="python", topic='upwork'):
                     "des":des
                     }
                     print('===',job)
-                    result.append(job)
-                    print('add one',i)
-    #     return jobs
+                    result.append(job)    #     return jobs
         filename = 'data/'+topic+'/{}.json'.format(search_query)
 
         date = current_date()
