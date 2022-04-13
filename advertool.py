@@ -3,7 +3,7 @@
 import advertools as adv
 from constants import *
 from urllib.parse import urlparse
-
+import json
 import os
 def ensure_dir(file):
     directory = os.path.abspath(os.path.dirname(file))
@@ -40,8 +40,8 @@ for idx,url in enumerate(popular_shopify_stores):
         except:
                 print('no robots.txt')
                 undonedomain.append(domain)
-write_text('data/shopify/sitemapindex.json',results)
-write_text('data/shopify/noroto.txt',undonedomain)
+write_text('data/shopify/sitemapindex.json',json.dumps({"results":results}, indent = 3))
+write_text('data/shopify/noroto.txt',json.dumps({"failed":undonedomain},indent=3))
 # adv.crawl('http://www.cettire.com', 'my_output_file.jl', follow_links=True)
 
 # # That's it! To open the file:
