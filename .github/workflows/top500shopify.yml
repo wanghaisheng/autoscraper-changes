@@ -1,8 +1,6 @@
-name: scrape
+name: appstorereviews
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "00 12 * * *"
 jobs:
   scrape_and_email:
     runs-on: ubuntu-latest
@@ -14,9 +12,9 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install all necessary packages
-        run: pip install requests beautifulsoup4 pandas sendgrid amazon_buddy google_play_scraper app_store_scraper
+        run: pip install   advertools  pandas 
       - name: Run the scraping script
-        run: python reviews.py
+        run: python advertool.py
       - name: Commit and push and email if content changed
         env:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
