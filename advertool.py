@@ -3,9 +3,22 @@
 import advertools as adv
 from constants import *
 from urllib.parse import urlparse
-from utils import *
+
+import os
+def ensure_dir(file):
+    directory = os.path.abspath(os.path.dirname(file))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
+def write_text(file: str, text: str):
+    ensure_dir(file)
+    with open(file, mode='w') as f:
+        f.write(text)
+
 results=[]
 undonedomain=[]
+
 for idx,url in enumerate(popular_shopify_stores):
         domain = urlparse(url).netloc
         if not 'www' in domain:
@@ -39,3 +52,4 @@ write_text('data/shopify/noroto.txt',undonedomain)
 
 # # https://github.com/prnvvj/Website-SiteMap-Analysis
 # https://colab.research.google.com/github/Rahul-YYC/CrawlWebsitePython/blob/main/CrawlAnalyzeWebsitePython.ipynb#scrollTo=JBLOgK5Td8oz
+# https://colab.research.google.com/github/prnvvj/Website-SiteMap-Analysis/blob/main/SiteMap%20Analysis.ipynb#scrollTo=HccIPGsbZb2H
