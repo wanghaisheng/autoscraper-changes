@@ -1,52 +1,53 @@
 import requests
-import bs4
-import json
 import time
-import random
 import os
-import re
-import lxml.html
-from utils import *
+import optparse
 import asyncio
 from playwright.async_api import async_playwright
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.keys import Keys
+from datetime import datetime
 
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException, WebDriverException
-
-from selenium.webdriver.common.action_chains import ActionChains
 jobs = []
 
 # Headers to fake the request as browser to avoid blocking
-headers = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate",
-    "DNT": "1",
-    "Connection": "close",
-    "Upgrade-Insecure-Requests": "1"
-}
+# from .util import *
 
 
-headers = dict(headers)
+async def get_playright(proxy:bool=False,headless:bool=True):
+    print('proxy',proxy,'headless',headless)
+    browser=''
+    playwright =await  async_playwright().start()
+    PROXY_SOCKS5 = "socks5://127.0.0.1:1080"
+    # browser=''
+    if proxy==False:
+        try:
+            print("start pl without proxy")
+            browser = await  playwright.firefox.launch(headless=headless)
+            print('start is ok')
+            return browser
 
-def scrape_uc(search_query="python", topic='upwork'):
-    web_driver=get_undetected_webdriver()
-    url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
-    print(url)
-    out =web_driver.get(url)        
-    wait = WebDriverWait(web_driver, 10)    
-    try:
-        count=web_driver.find_element(By.CSS_SELECTOR, "div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)")
-        print(count.text)
-    except:
-        print('no result')
+        except:
+            print('pl no proxy start failed')
+            browserLaunchOptionDict = {
+            "headless": headless,
+            "proxy": {
+                    "server": PROXY_SOCKS5,
+            }
+            } 
+            browser = await playwright.firefox.launch(**browserLaunchOptionDict)
+            # Open new page    
+            return browser
+    else: 
+        print('proxy===',headless)
+        browserLaunchOptionDict = {
+        "headless": headless,
+        "proxy": {
+                "server": PROXY_SOCKS5,
+        }
+        } 
+        browser = await playwright.firefox.launch(**browserLaunchOptionDict)
+        # Open new page    
 
+        return browser
 
 async def scrape_pl(search_query="python", topic='upwork'):
     # time.sleep(random.randint(10,50))
@@ -131,6 +132,50 @@ async def scrape_pl(search_query="python", topic='upwork'):
 
     except:
         print('error')
+def ensure_dir(file):
+    directory = os.path.abspath(os.path.dirname(file))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
+def write_text(file: str, text: str):
+    ensure_dir(file)
+    with open(file, mode='w') as f:
+        f.write(text)        
+def getOpts():
+    parser = optparse.OptionParser()
+    parser.add_option('-m', '--module', dest='module',
+                      default='ruijie_eg', type=str, help='Module name')
+    parser.add_option('-k', '--keywords', dest='keywords',
+                      default='genshin', type=str, help='keyword list')
+    parser.add_option('-n', '--topic', dest='topic',
+                      default='genshin', type=str, help='topic name')
+    parser.add_option('-p',
+                      '--proxypool',
+                      dest='proxypool',
+                      default='https://proxypool.scrape.center/random',
+                      type=str,
+                      help='Host and port of ProxyPool (default = 127.0.0.1:5010)')
+    parser.add_option('-d',
+                      '--delay',
+                      default=5,
+                      type=float,
+                      dest='delay',
+                      help='Seconds to delay between requests for each proxy (default = 5)')
+    parser.add_option('-T', '--threads', default=15, type=int,
+                      dest='threads', help='Number of threads (default = 15)')
+    parser.add_option('-t', '--timeout', default=6, type=float,
+                      dest='timeout', help='Seconds of Timeout (default = 6)')
+
+    (opts, args) = parser.parse_args()
+    return opts, args
+def current_time():
+    return datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
+
+
+def current_date():
+    return datetime.now().astimezone().strftime('%Y-%m-%d')
+
 # print(scrape_data())
 opts, args = getOpts()
 keywords = opts.keywords
