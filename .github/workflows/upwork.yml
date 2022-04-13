@@ -7,7 +7,8 @@ on:
   schedule:
     # 
     - cron: "00 12 * * *"
-
+env:
+  UPWORK_COOKIE: ${{secrets.UPWORK_COOKIE}}
 jobs:
   build:
     runs-on: ubuntu-latest
