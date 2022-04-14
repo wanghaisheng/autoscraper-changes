@@ -10,3 +10,4 @@ colorlog
 httpx
 webdriver_manager
 advertools
+apprise

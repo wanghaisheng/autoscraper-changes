@@ -7,7 +7,14 @@ import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
 import json
+from undetected_driver import get_undetected_webdriver
 import platform
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException, WebDriverException
+
+from selenium.webdriver.common.action_chains import ActionChains
 jobs = []
 
 # Headers to fake the request as browser to avoid blocking
@@ -53,6 +60,19 @@ async def get_playright(proxy:bool=False,headless:bool=True):
 
         return browser
 
+def scrape_uc(search_query="tiktok", topic='upwork'):
+    web_driver=get_undetected_webdriver()    
+    url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
+
+    out =web_driver.get(url)        
+    wait = WebDriverWait(web_driver, 10)
+    try:
+        web_driver.find_element(By.CSS_SELECTOR, "img[class^='captcha_verify_img_slide']")
+
+        piece_url = wait.until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, "img[class^='captcha_verify_img_slide react-draggabl']"))).get_attribute('src')
+    except:
+        print()
 async def scrape_pl(search_query="python", topic='upwork'):
     # time.sleep(random.randint(10,50))
     # Sends a request

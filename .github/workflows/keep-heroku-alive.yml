@@ -13,4 +13,10 @@ jobs:
       - name: Call our myowndaily route
         run: |
           curl --request GET \
-          --url 'https://myowndaily.herokuapp.com/'           
+          --url 'https://myowndaily.herokuapp.com/'      
+      - name: Call our link detection route
+        run: |
+          curl --request GET \
+          --url 'https://links-detection-shopconna.herokuapp.com/'               
+
+
