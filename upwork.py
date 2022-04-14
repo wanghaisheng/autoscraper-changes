@@ -63,8 +63,16 @@ async def scrape_pl(search_query="python", topic='upwork'):
     browser = await  get_playright(False, False)
     context = await browser.new_context()
     # print(os.environ.get('UPWORK_COOKIE'))
-    context.add_cookies(
+    await context.add_cookies(
                 json.loads(os.environ.get('UPWORK_COOKIE')))
+    # await context.add_cookies(
+    #                 json.load(
+    #                     open(
+    #                         'cookie.json', 
+    #                         'r'
+    #                     )
+    #                 )
+    #             )                       
     homepage = await context.new_page()
     try:
         res = await homepage.goto(url)
