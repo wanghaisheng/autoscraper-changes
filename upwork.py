@@ -62,7 +62,7 @@ async def scrape_pl(search_query="python", topic='upwork'):
     print('user home url', url)
     browser = await  get_playright(False, False)
     context = await browser.new_context()
-    print(os.environ.get('UPWORK_COOKIE'))
+    # print(os.environ.get('UPWORK_COOKIE'))
     context.add_cookies(
                 json.loads(os.environ.get('UPWORK_COOKIE')))
     homepage = await context.new_page()
@@ -70,7 +70,9 @@ async def scrape_pl(search_query="python", topic='upwork'):
         res = await homepage.goto(url)
         # print(parser.find(string=re.compile("found")))
         # print(parser.find_all(attrs={"data-test": "jobs-count"}))
-
+        avatar=homepage.locator('.nav-d-none > button:nth-child(1) > div:nth-child(1) > img:nth-child(2)')
+        print('is login in')
+    
         count =  homepage.locator('div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)')
         count =await count.text_content()
 
