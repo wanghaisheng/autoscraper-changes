@@ -7,7 +7,6 @@ peewee
 pyairtable
 playwright==1.21.0
 colorlog 
-httpx
 webdriver_manager
 advertools
 apprise==0.9.8

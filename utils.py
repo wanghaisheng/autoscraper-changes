@@ -12,7 +12,6 @@ import base64
 import signal
 from datetime import datetime
 from datetime import timedelta
-from httpx import AsyncClient
 from colorlog import ColoredFormatter
 from urllib.parse import quote_plus
 import requests
