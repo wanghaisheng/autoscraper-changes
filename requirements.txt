@@ -10,4 +10,5 @@ webdriver_manager
 advertools
 apprise==0.9.8
 supabase==0.5.3
+playwright==1.18.1
 python-dotenv
