@@ -37,6 +37,8 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install dependencies
         run: |      
+          pip uninstall realtime 
+          pip install playwright
           python -m playwright install     
       # 配置git
       - name: Config git
