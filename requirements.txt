@@ -5,7 +5,7 @@ selenium-wire
 undetected_chromedriver
 peewee
 pyairtable
-playwright==1.21.0
+playwright==1.20.0
 colorlog 
 httpx
 webdriver_manager
