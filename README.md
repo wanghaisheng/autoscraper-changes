@@ -1,6 +1,13 @@
 # GitHub AutoScraper + Change Alerts
 
 
+
+## tidb cloud 
+ 
+account create
+
+cluster create
+
 https://github.com/caronc/apprise
 
 

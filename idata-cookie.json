@@ -1,0 +1,62 @@
+[
+        {
+            "name": "num",
+            "value": "edwin_uestc@163.com",
+            "domain": ".cn-ki.net",
+            "hostOnly": false,
+            "path": "/",
+            "secure": false,
+            "httpOnly": false,
+            "sameSite": "None",
+            "session": false,
+            "firstPartyDomain": "",
+            "partitionKey": null,
+            "expirationDate": 1651131049,
+            "storeId": null
+        },
+        {
+            "name": "session",
+            "value": "eyJfcGVybWFuZW50Ijp0cnVlLCJzZWFyY2hfaWQiOnsiIGIiOiJVbk4yT0RKVWNISnNWbGRqZDJsdFpnPT0ifX0.YmEL-w.Wip--VrQog4Ue1SKO88DI7XseR8",
+            "domain": "search.cn-ki.net",
+            "hostOnly": true,
+            "path": "/",
+            "secure": false,
+            "httpOnly": true,
+            "sameSite": "None",
+            "session": false,
+            "firstPartyDomain": "",
+            "partitionKey": null,
+            "expirationDate": 1653119227,
+            "storeId": null
+        },
+        {
+            "name": "ucks",
+            "value": "ZQvYeP41dyomLOATf2J09Msn3hjzGaRw::idata",
+            "domain": ".cn-ki.net",
+            "hostOnly": false,
+            "path": "/",
+            "secure": false,
+            "httpOnly": false,
+            "sameSite": "None",
+            "session": false,
+            "firstPartyDomain": "",
+            "partitionKey": null,
+            "expirationDate": 1651131049,
+            "storeId": null
+        },
+        {
+            "name": "data",
+            "value": "%7B%22ASP.NET_SessionId%22%3A%20%22e2v3zxbsweykfew5aziqumtw%22%2C%20%22SID_kns%22%3A%20%22126009%22%2C%20%22RsPerPage%22%3A%20%2220%22%2C%20%22sort_type%22%3A%20%222%22%2C%20%22query_id%22%3A%20%221%22%2C%20%22Ecp_ClientId%22%3A%20%228220421154001774708%22%7D",
+            "domain": "search.cn-ki.net",
+            "hostOnly": true,
+            "path": "/",
+            "secure": false,
+            "httpOnly": false,
+            "sameSite": "None",
+            "session": false,
+            "firstPartyDomain": "",
+            "partitionKey": null,
+            "expirationDate": 1650563227,
+            "storeId": null
+        }
+    ]
