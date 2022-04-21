@@ -11,3 +11,5 @@ httpx
 webdriver_manager
 advertools
 apprise
+supabase
+dotenv
