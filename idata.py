@@ -1,6 +1,3 @@
-from ast import UAdd
-from fileinput import filename
-import requests
 import time
 import os
 import optparse
