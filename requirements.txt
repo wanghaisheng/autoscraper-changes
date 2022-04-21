@@ -5,10 +5,10 @@ selenium-wire
 undetected_chromedriver
 peewee
 pyairtable
-playwright==1.21.0
 colorlog 
 webdriver_manager
 advertools
 apprise==0.9.8
 supabase==0.5.3
+playwright==1.21.0
 python-dotenv
