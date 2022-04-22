@@ -130,13 +130,18 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
         await homepage.fill('#passwd', us)
         await homepage.locator('#app > div > div > div:nth-child(3) > div > div > div.card__title.card__title--primary > div:nth-child(3) > button > div').click()
         time.sleep(3)
-        res = await homepage.goto(url)
+        res = await homepage.goto('https://search.cn-ki.net/search?keyword=%E8%84%91%E7%98%AB%20%E8%90%A5%E5%85%BB&db=CDMD&p=-1')
         # print(parser.find(string=re.compile("found")))
         # print(parser.find_all(attrs={"data-test": "jobs-count"}))
         avatar = homepage.locator(
             'span.mdui-float-right:nth-child(4) > a:nth-child(1)')
         print('is login in')
+        
         await homepage.fill('#keyword',search_query)
+        print('input keyword')
+        await homepage.locator('.mdui-col-xs-2').click()
+        print('action to search')
+
         count=0
         try:
         
@@ -185,7 +190,7 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
         print(pages)
         for p in range(pages):
             print(p, '---')
-            prefix = 'https://search.cn-ki.net/search?keyword={}&db={}'.format(
+            prefix = 'search?keyword={}&db={}'.format(
                 search_query,db)
             print('prefix', prefix)
         # 3089
@@ -195,10 +200,14 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
             print('deal page', p+1, url)
             # fenyepage = await context.new_page()
             fenyepage =homepage
-            await fenyepage.fill('#keyword',search_query)
-            print('type input',search_query)
+            # 排序
+            await fenyepage.locator('.mdui-color-pink > small:nth-child(1)').click()
 
-            # await fenyepage.goto(url)
+            if p>0:
+                pagi=fenyepage.locator('a[href={}]'.format(url))
+                print('pagi,',pagi)
+                await pagi.click()
+
             try:
             
                 count = fenyepage.locator('.pagerTitleCell')
@@ -213,12 +222,14 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
                 error_flag=True
                 while error_flag:
                     if '系统' in error_msg:
-                        await fenyepage.reload()
-                        await homepage.locator('.mdui-btn-dense').click()
 
-                        time.sleep(6)
                         print('detected error refresh')
                         print('retry count no')
+                        await fenyepage.goto(url)
+                        # await fenyepage.fill('#keyword',search_query)
+                        # print('type input',search_query)
+                        # await fenyepage.locator('.mdui-col-xs-2').click()
+                        time.sleep(6)
                         count = fenyepage.locator('.pagerTitleCell')
                         count = await count.text_content()
                         print('count', count)
@@ -231,10 +242,11 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
 
                         error_flag=False
                         break
-
+            jobs = fenyepage.locator('div.mdui-container:nth-child(2) > div:nth-child(3) > div:nth-child(1) > h3:nth-child(1) > a')
+            print('!!',await jobs.count())
             jobs = fenyepage.locator('a[href^="/doc_detail"]')
             jobcount = await jobs.count()
-            print('jobcount', jobcount)
+            print('papercount', jobcount)
             await asyncio.sleep(1)
             if jobcount > 0:
                 for i in range(0, jobcount):
@@ -250,75 +262,79 @@ async def scrape_pl(search_query="python", topic='upwork',db='CFLS'):
                     print('href', href)
 
                     url = 'https://search.cn-ki.net'+href
+                    data = supabase.table("papers_bianmi").select('url').eq('url',url).execute()
+                    if len(data.data) > 0:
+                        print('this url exist', url, data.data)
+                    else:
+                        jobpage = await context.new_page()
 
-                    jobpage = await context.new_page()
-
-                    await jobpage.goto(url)
-                    title = jobpage.locator('.headline')
-                    title = await title.text_content()
-                    print('title', title)
-                    await asyncio.sleep(3)
-                    container = jobpage.locator('div.card >div.container >div.layout')
-                    journal=''
-                    institute=''
-                    journal_time=''
-                    keywords=''
-                    author=''
-                    print(await container.count(),'jibnexinxi ')
-                    for i in range(0, await container.count()):
-                        alltext= await container.nth(i).text_content()
-                        alltext=alltext.strip().replace('\r', '').replace('\n', '')
-                        alltext=alltext.replace(' ','')
-                        print('jibenxinx--',alltext)
-                        if '单位' in alltext:
-                            institute = alltext.replace('单位','').strip()
-                        elif '期刊' in alltext:
-                            journal = alltext.replace('期刊','').strip()
-                        elif '时间' in alltext:
-                            journal_time= alltext.replace('时间','').strip()
-                        elif '关键词' in alltext:
-                            keywords= alltext.replace('关键词','').strip()
-                        elif '作者' in alltext:
-                            author= alltext.replace('作者','').strip()
-                                                        
-                    abstract = jobpage.locator('.card__text')
-                    abstract = await abstract.text_content()
-                    abstract = abstract.strip().replace('\r', '').replace('\n', '')
-                    print('abstract',abstract)
+                        await jobpage.goto(url)
+                        title = jobpage.locator('.headline')
+                        title = await title.text_content()
+                        print('title', title)
+                        await asyncio.sleep(3)
+                        container = jobpage.locator('div.card >div.container >div.layout')
+                        journal=''
+                        institute=''
+                        journal_time=''
+                        keywords=''
+                        author=''
+                        print(await container.count(),'jibnexinxi ')
+                        for i in range(0, await container.count()):
+                            alltext= await container.nth(i).text_content()
+                            alltext=alltext.strip().replace('\r', '').replace('\n', '')
+                            alltext=alltext.replace(' ','')
+                            print('jibenxinx--',alltext)
+                            if '单位' in alltext:
+                                institute = alltext.replace('单位','').strip()
+                            elif '期刊' in alltext:
+                                journal = alltext.replace('期刊','').strip()
+                            elif '时间' in alltext:
+                                journal_time= alltext.replace('时间','').strip()
+                            elif '关键词' in alltext:
+                                keywords= alltext.replace('关键词','').strip()
+                            elif '作者' in alltext:
+                                author= alltext.replace('作者','').strip()
+                                                            
+                        abstract = jobpage.locator('.card__text')
+                        abstract = await abstract.text_content()
+                        abstract = abstract.strip().replace('\r', '').replace('\n', '')
+                        print('abstract',abstract)
 
 
-                    async with jobpage.expect_download() as download_info:
-                        # Perform the action that initiates download
-                        # await jobpage.click("a.success--text")
-                        await jobpage.click('text=下载')
-                    download = await download_info.value
-                    print('downloadinfo',download)
+                        async with jobpage.expect_download() as download_info:
+                            # Perform the action that initiates download
+                            # await jobpage.click("a.success--text")
+                            await jobpage.click('text=下载')
+                        download = await download_info.value
+                        print('downloadinfo',download)
 
-                    # Wait for the download process to complete
-                    path = await download.path()
-                    print('downloadpath',path)
+                        # Wait for the download process to complete
+                        path = await download.path()
+                        print('downloadpath',path)
 
-                    filename=download.suggested_filename
-                    print(filename)
+                        filename=download.suggested_filename
+                        print(filename)
 
-                    await download.save_as('./data/bianmi/'+filename)
-        # Making a list of dicts
-                    paper = {
-                        "url": url,
-                        "title": title,
-                        "author": author,
-                        "keywords": keywords,
-                        "shuobo":shuobo,
-                        "abstract": abstract,
-                        "institute": institute,
-                        "journal":journal,
-                        "journal_time":journal_time,
-                        "topic": topic
-                    }
-                    print('save db')
-                    data = supabase.table("papers_bianmi").insert(paper).execute()
-                    print('delay for later')
-                    # await asyncio.sleep(3)
+                        await download.save_as('./data/bianmi/'+filename)
+            # Making a list of dicts
+                        paper = {
+                            "url": url,
+                            "title": title,
+                            "author": author,
+                            "keywords": keywords,
+                            "shuobo":shuobo,
+                            "abstract": abstract,
+                            "institute": institute,
+                            "journal":journal,
+                            "journal_time":journal_time,
+                            "topic": topic
+                        }
+                        print('save db')
+                        data = supabase.table("papers_bianmi").insert(paper).execute()
+                        print('delay for later')
+                        # await asyncio.sleep(3)
+                        time.sleep(30)
                     # jobpage.close()
 # create table papers_bianmi (
 #   id bigint generated by default as identity primary key,
