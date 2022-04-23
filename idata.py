@@ -138,7 +138,10 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
         await homepage.fill('#keyword', search_query)
         print('input keyword')
         time.sleep(1)
-
+        if db=='CDMD':
+            print('choose shuobo')
+            await homepage.locator('label.mdui-radio:nth-child(3)').click()   
+        await homepage.locator('div.mdui-col-xs-2:nth-child(3)').click()
         await homepage.locator('div.mdui-col-xs-2:nth-child(3)').click()
         print('action to search')
         time.sleep(1)
@@ -178,11 +181,7 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
         #             break
 
         #     print('retry count no')
-        if db=='CDMD':
-            print('choose shuobo')
-            await homepage.locator('label.mdui-radio:nth-child(3)').click()   
-            await homepage.locator('div.mdui-col-xs-2:nth-child(3)').click()
-            time.sleep(3)
+
         count = homepage.locator('div.mdui-col-xs-2:nth-child(2)')
         count = await count.text_content()
         print('total papers', count)
@@ -245,13 +244,13 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                     "author": author,
                     "shuobo": shuobo,
                     "institute":institute,
-                    "abstract": abstract,
+                    "abstract": abstract.strip(),
                     "journal": journal,
                     "journal_time": journal_time,
                     "pdflink":pdflink,
                     "topic": topic
                 }
-                print('save db')
+                print('save db',paperbrief)
                 data = supabase.table("papers_bianmi").insert(
                     paperbrief).execute()
                 print('delay for later')
