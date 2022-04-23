@@ -218,9 +218,13 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                 if len(raw)==3:
                     author = raw[0].strip()
                     institute = raw[1].strip()
-                    shuobo = raw[2].strip()
                     journal=''
                     journal_time=''
+                    if ' 'in institute:
+                        journal=institute.split(' ')[0]
+                        journal_time=institute.split(' ')[1]
+                    shuobo = raw[2].strip()
+
                 else:
                     author = raw[0].strip()
                     # print('raw',raw[1])
@@ -243,6 +247,7 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                     "title": title,
                     "author": author,
                     "shuobo": shuobo,
+                    "keywords": '',
                     "institute":institute,
                     "abstract": abstract.strip(),
                     "journal": journal,
@@ -253,7 +258,7 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                 print('save db',paperbrief)
                 data = supabase.table("papers_bianmi").insert(
                     paperbrief).execute()
-                print('delay for later')
+                print('delay for later',data)
 
                 # jobpage.close()
             await homepage.locator('.mdui-m-b-5').click()
