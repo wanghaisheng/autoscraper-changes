@@ -180,7 +180,9 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
         #     print('retry count no')
         if db=='CDMD':
             print('choose shuobo')
-            await homepage.locator('label.mdui-radio:nth-child(3)').click()         
+            await homepage.locator('label.mdui-radio:nth-child(3)').click()   
+            await homepage.locator('div.mdui-col-xs-2:nth-child(3)').click()
+            time.sleep(3)
         count = homepage.locator('div.mdui-col-xs-2:nth-child(2)')
         count = await count.text_content()
         print('total papers', count)
@@ -213,16 +215,23 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                 raw = await jobs.nth(i).locator('div:nth-child(1) > div:nth-child(2)').text_content()
                 raw=raw.strip().split('，')
                 raw = list(filter(None, raw))
+                print('raw',raw)
+                if len(raw)==3:
+                    author = raw[0].strip()
+                    institute = raw[1].strip()
+                    shuobo = raw[2].strip()
+                    journal=''
+                    journal_time=''
+                else:
+                    author = raw[0].strip()
+                    # print('raw',raw[1])
+                    institute=''
+                    print('author',author)
+                    journal = raw[1].strip().split(' ')[0]
+                    print('journal',journal)
 
-                author = raw[0].strip()
-                # print('raw',raw[1])
-
-                print('author',author)
-                journal = raw[1].strip().split(' ')[0]
-                print('journal',journal)
-
-                journal_time= raw[1].strip().split(' ')[1]
-                print('journal_time',journal_time)
+                    journal_time= raw[1].strip().split(' ')[1]
+                    print('journal_time',journal_time)
 
                 # journal_time= raw[1].strip().split(' ')[1]
 
@@ -235,6 +244,7 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
                     "title": title,
                     "author": author,
                     "shuobo": shuobo,
+                    "institute":institute,
                     "abstract": abstract,
                     "journal": journal,
                     "journal_time": journal_time,
