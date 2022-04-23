@@ -281,9 +281,11 @@ async def scrape_pl(search_query="python", topic='upwork', db='CFLS'):
         print('error')
 
 
-async def downloadpdf(url,context,shuobo):
+async def downloadpdf():
     # url = 'https://search.cn-ki.net'+href
     # query 
+    browser = await get_playright(False, False)
+    context = await browser.new_context()
     data = supabase.table("papers_bianmi").select(
         'pdflink').eq('pdfdone',False).execute()
     if len(data.data) > 0:
@@ -413,7 +415,7 @@ topic = opts.topic
 keywords = '便秘'
 # asyncio.run(scrape_data(search_query=keywords, topic=topic))
 
-asyncio.run(scrape_pl(search_query=keywords, topic=topic, db='CDMD'))
+asyncio.run(downloadpdf())
 
 # asyncio.run(scrape_pl(search_query=keywords, topic=topic,db='CFLS'))
 
