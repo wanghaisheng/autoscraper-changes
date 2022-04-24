@@ -143,6 +143,7 @@ class Scraper:
             # filter the links
             logger.warning("filtering the links")
             for link in job_links:
+                
                 self.filter_link_plus(link)
                 time.sleep(30)
 
@@ -155,7 +156,7 @@ class Scraper:
 
     def filter_link_plus(self, job_id):
         # url = f'https://www.upwork.com/ab/jobs/search/jobdetails/visitor/{job_id}/details'
-        url = f'https://www.upwork.com/job-details/jobdetails/api/job/{job_id}/summary'
+        url = f'https://www.upwork.com/jobdetails/api/job/{job_id}/summary'
 
         res = requests.get(url, headers=self.headers)
         print('detail job url', url)
