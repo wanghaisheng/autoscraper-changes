@@ -185,8 +185,9 @@ class Scraper:
 if __name__ == '__main__':
     # Scraper(sys.argv[1]).scrap()
     print(os.getcwd())
-    with open('keywords.txt','r') as f:
-        keywords = [key.strip() for key in f.read().split('\n')]
+    # with open('keywords.txt','r') as f:
+        # keywords = [key.strip() for key in f.read().split('\n')]
+    keywords=['tiktok']
     print("keywords"+str(keywords))
     for key in keywords:
         logger.warning(f"starting scraping for: {key}")
