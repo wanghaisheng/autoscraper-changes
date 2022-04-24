@@ -3,6 +3,8 @@ import time
 import os
 import optparse
 import random
+from bs4 import BeautifulSoup
+
 import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
@@ -15,7 +17,27 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException, WebDriverException
 
 from selenium.webdriver.common.action_chains import ActionChains
-jobs = []
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import sys
+import logging
+from tenacity import *
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
+
+# 加载文件
+load_dotenv(".env")
+supabase_url = os.environ.get('supabase_url')
+supabase_url='https://bwrzzupfhzjzvuglmpwx.supabase.co'
+
+print(supabase_url)
+supabase_apikey = os.environ.get('supabase_apikey')
+print(supabase_apikey)
+
+supabase_db: Client = create_client(supabase_url=supabase_url, supabase_key=supabase_apikey)
+
 
 # Headers to fake the request as browser to avoid blocking
 # from .util import *
@@ -88,72 +110,90 @@ def scrape_uc(search_query="tiktok", topic='upwork'):
 
     out =web_driver.get(url)        
     wait = WebDriverWait(web_driver, 10)
-    count =  web_driver.find_element(By.CSS_SELECTOR,'div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').text
+    html = web_driver.execute_script("return document.documentElement.outerHTML")
+    upwork_soup = BeautifulSoup(html, 'html.parser')
+    total_jobs = upwork_soup.find_all(lambda tag: len(tag.find_all()) == 0 and "found" in tag.text)
+    # select_one('strong:-soup-contains("jobs found")')
+    # [0].text
+    print(total_jobs)
+    count=upwork_soup.find_all("div", {"class": "pt-20 d-flex align-items-center justify-space-between"})[0].strong.text
+
 
     if ',' in count:
         count=count.replace(',','')
-    print(count)
-    count=int(count)
-    pages = int(count/10)+1
-    result=[]
+    count =int(count)
+    # print(count)
+    pages = int(count/50)+1
     print(pages)
     for p in range(pages):
-        print(p,'---')
-        prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&sort=recency'.format(search_query)
-        print('prefix',prefix)
-    #3089
-    # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
-    # 550            
-        url=prefix+'&page='+str(p+1)
-        print('deal page',p+1,url)
 
-        web_driver.get(url)
-        jobs=web_driver.find_elements('.up-card-list-section')
-        if jobs:
-            for i in jobs:
-                # time.sleep(random.randint(10, 30))    
-                print('no',i,'in this page',p)
-                title= i.find_element("div > div> h4 >a").text
-                print(title,'-')
-                href=i.find_element("div > div> h4 >a").get_attribute('href')
-                print('111')
-                id =href.replace('/job/','').replace('/','')
-                joburl='https://www.upwork.com'+href
-                print('222')
-                tag=''
-                tags= i.find_elements(By.CSS_SELECTOR,"div.up-skill-wrapper>a")
-                if tags:
-                    for i in tags:
-                        tag=tag+','+i.text
+        url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency&page={}".format(search_query,p)
 
-                web_driver.get(joburl)
+        out =web_driver.get(url)        
+        wait = WebDriverWait(web_driver, 10)
+        html = web_driver.execute_script("return document.documentElement.outerHTML")
+        upwork_soup = BeautifulSoup(html, 'html.parser')
+        website = upwork_soup.findAll('section', {'class':'job-tile air-card-hover hover'})
 
 
-                des=web_driver.find_element(By.CSS_SELECTOR,'.job-description').text
-                # print('des',des)
+        for data in website:
+            job_title = data.findAll('h2', {'class':'job-title m-0-top m-sm-bottom'})[0].text.strip(" \n\t\r").encode('utf-8')
+            job_type = data.findAll('strong', {'class':'js-type'})[0].text.strip(" \n\t\r")
+            job_level = data.findAll('span', {'class':'js-contractor-tier'})[0].text.strip(" - \n\t\r")
+            try:
+                job_budget = data.findAll('span', {'data-itemprop':'baseSalary'})[0].text.strip(" -  \n\t\r")
+            except:
+                job_budget = "No Data"
+            try:
+                job_estimated_time = data.findAll('span', {'class':'js-duration'})[0].text.strip("Est. Time -  : \n\t\r ")
+            except:
+                job_estimated_time = "No Data"
+            job_posted_time = data.findAll('time', {'data-itemprop':'datePosted'})[0].text.strip(" -  \n\t\r")
+            job_proposals = data.findAll('small', {'class':'display-inline-block m-sm-top m-md-right'})[0].text
+            try:
+                job_country = data.findAll('strong', {'class':'text-muted client-location'})[0].text
+            except:
+                job_country = "No Data"
+            link = data.findAll('a', {'class':'job-title-link break visited'})
+            for job_link in link:
+                if job_link.has_attr('href'):
+                    half_link = job_link['href']
+                    job_page_link = "https://upwork.com" + half_link
+                    web_driver.get(job_page_link)
+                    time.sleep(10)
+                    html = web_driver.execute_script("return document.documentElement.outerHTML")
+                    job_page_soup = BeautifulSoup(html, 'html.parser')
+                    job_detail = job_page_soup.findAll('p', {'class':'break'})[0].text
+                    try:
+                        job_skill = job_page_soup.findAll('a', {'class':'o-tag-skill m-0-left m-0-top m-md-bottom'})[0].text
+                    except:
+                        job_skill = "No Data"
+                    job_div = job_page_soup.findAll('div', {'id':'form'})[0].text       
+                    job ={
+                        "job_title":job_title,
+                        "job_type":job_type,
+                        "job_level":job_level,
+                        "job_budget":job_budget,
+                        "job_estimated_time":job_estimated_time,
+                        "job_posted_time":job_posted_time,
+                        "job_page_link ": job_page_link,
+                        "job_detail ": job_detail,
+                        "job_skill ": job_skill,
+                        "job_div ": job_div,
+                        "proposals ": job_proposals,
+                        "location ": job_country
+                    }
+                    print(job)
+                    supabaseop("upwork_jobs",job)
+                    time.sleep(30)
 
-                # print('des',des)
 
-                des =des.strip().replace('\r','').replace('\n','')
-                # print('des',des)
-
-        # Making a list of dicts
-                job = {"id":id,
-                "url":url,
-                "title":title,
-                "tags":tag,
-                "des":des
-                }
-                print('===',job)
-                result.append(job)  
-                # await asyncio.sleep(6)                     
-                    
-                    #     return jobs
-    filename = 'data/'+topic+'/{}.json'.format(search_query)
-
-    date = current_date()
-    file = os.path.join(search_query, date, filename)
-    write_text(file, result)
+@retry(stop=stop_after_attempt(3), before=before_log(logger, logging.DEBUG))
+def supabaseop(tablename,users):
+    try:
+        data = supabase_db.table(tablename).insert(users).execute()    
+    except:
+        raise Exception
 
 
 async def scrape_pl(search_query="python", topic='upwork'):

@@ -41,7 +41,7 @@ def get_undetected_webdriver_silence(silence:bool=True):
     silence = True if silence is None or "linux" in sys.platform else silence
 
     if silence is True:
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-software-rasterizer")
 
@@ -50,13 +50,13 @@ def get_undetected_webdriver_silence(silence:bool=True):
     try:
         return uc.Chrome(
             use_subprocess=True,
-            headless=silence,
+            # headless=silence,
             options=options,
             driver_executable_path=ChromeDriverManager(log_level=0).install(),
         )
     # 避免核心并行
     except OSError:
-        return uc.Chrome(use_subprocess=True,headless=silence, options=options)
+        return uc.Chrome(use_subprocess=True, options=options)
     
 def get_undetected_webdriver(proxy):
 
