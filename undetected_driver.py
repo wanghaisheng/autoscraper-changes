@@ -7,9 +7,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.utils import ChromeType
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+import sys
 import os
-chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-print('demo scrape using playwright')
+# chrome_service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
+# print('demo scrape using playwright')
 
 #https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/347
 
@@ -32,7 +33,31 @@ print('demo scrape using playwright')
 #     finally:
 #         ctx.quit()
 
+def get_undetected_webdriver_silence(silence:bool=True):
+    options = uc.ChromeOptions()        
+    options.add_argument("--no-sandbox")        
+    options.add_argument("--disable-dev-shm-usage")        
 
+    silence = True if silence is None or "linux" in sys.platform else silence
+
+    if silence is True:
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-software-rasterizer")
+
+    # 使用 ChromeDriverManager 托管服务，自动适配浏览器驱动
+
+    try:
+        return uc.Chrome(
+            use_subprocess=True,
+            headless=silence,
+            options=options,
+            driver_executable_path=ChromeDriverManager(log_level=0).install(),
+        )
+    # 避免核心并行
+    except OSError:
+        return uc.Chrome(use_subprocess=True,headless=silence, options=options)
+    
 def get_undetected_webdriver(proxy):
 
     seleniumwire_options = {
@@ -48,33 +73,22 @@ def get_undetected_webdriver(proxy):
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
 
-    if os.environ.get("GOOGLE_CHROME_BIN"):
-        options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-    # ChromeDriverManager().install()
-    # Use with Chromium
-    # Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
-    # Use with Chrome
     
+    # Use with Chromium
+    # Use with Chrome
+    ChromeDriverManager(log_level=0).install()
+    service=Service(ChromeDriverManager(log_level=0).install())
+
     driver = ''
-    if os.environ.get("CHROMEDRIVER_PATH"):
-        executable_path = os.environ.get("CHROMEDRIVER_PATH")
-    # driver = webdriver.Chrome(options = options, seleniumwire_options = seleniumwire_options, version_main = my_version)
-        if proxy==False:
-              driver = seleniumwireundetectedchromedriver.Chrome(
-            options=options, executable_path=executable_path)
-        else:
-            driver = seleniumwireundetectedchromedriver.Chrome(
-            options=options, executable_path=executable_path, seleniumwire_options=seleniumwire_options)
+
+    if proxy==False:
+        print('start uc no proxy')
+        driver = seleniumwireundetectedchromedriver.Chrome(use_subprocess=True,service=service,
+        options=options)
     else:
-        if proxy==False:
-            print('start uc no proxy')
-            driver = seleniumwireundetectedchromedriver.Chrome(
-            options=options)
-        else:
-            print('start uc with proxy')
-            service=Service(ChromeDriverManager().install())
-            driver = seleniumwireundetectedchromedriver.Chrome(service=service,
-            options=options, seleniumwire_options=seleniumwire_options)
+        print('start uc with proxy')
+        driver = seleniumwireundetectedchromedriver.Chrome(use_subprocess=True,service=service,
+        options=options, seleniumwire_options=seleniumwire_options)
     return driver
 
 

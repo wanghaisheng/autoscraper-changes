@@ -7,7 +7,7 @@ import asyncio
 from playwright.async_api import async_playwright
 from datetime import datetime
 import json
-from undetected_driver import get_undetected_webdriver
+from undetected_driver import get_undetected_webdriver,get_undetected_webdriver_silence
 import platform
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -61,18 +61,101 @@ async def get_playright(proxy:bool=False,headless:bool=True):
         return browser
 
 def scrape_uc(search_query="tiktok", topic='upwork'):
-    web_driver=get_undetected_webdriver()    
+    web_driver=get_undetected_webdriver_silence(True)    
+    print('instance ok')
+    #login 
+
+
+    loginurl='https://www.upwork.com/ab/account-security/login'
+    web_driver.get(loginurl)
+    wait = WebDriverWait(web_driver, 10)
+    
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#login_username')))
+    mail =web_driver.find_element(By.CSS_SELECTOR, '#login_username')
+    mail.clear()
+    mail.send_keys('whs860603@gmail.com')
+    next=web_driver.find_element(By.CSS_SELECTOR, '#login_password_continue').click()
+    wait = WebDriverWait(web_driver, 10)
+    wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#login_password')))
+
+    passwd =web_driver.find_element(By.CSS_SELECTOR, '#login_password')
+    passwd.clear()
+    passwd.send_keys('tkYRr9apXDfWSZb')
+    next=web_driver.find_element(By.CSS_SELECTOR, '#login_control_continue').click()
+    wait = WebDriverWait(web_driver, 10)
+
     url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
 
     out =web_driver.get(url)        
     wait = WebDriverWait(web_driver, 10)
-    try:
-        web_driver.find_element(By.CSS_SELECTOR, "img[class^='captcha_verify_img_slide']")
+    count =  web_driver.find_element(By.CSS_SELECTOR,'div.pt-20:nth-child(3) > div:nth-child(1) > span:nth-child(1) > strong:nth-child(1)').text
 
-        piece_url = wait.until(EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "img[class^='captcha_verify_img_slide react-draggabl']"))).get_attribute('src')
-    except:
-        print()
+    if ',' in count:
+        count=count.replace(',','')
+    print(count)
+    count=int(count)
+    pages = int(count/10)+1
+    result=[]
+    print(pages)
+    for p in range(pages):
+        print(p,'---')
+        prefix = 'https://www.upwork.com/nx/jobs/search/?q={}&sort=recency'.format(search_query)
+        print('prefix',prefix)
+    #3089
+    # https://www.upwork.com/nx/jobs/search/?q=tiktok&sort=recency  
+    # 550            
+        url=prefix+'&page='+str(p+1)
+        print('deal page',p+1,url)
+
+        web_driver.get(url)
+        jobs=web_driver.find_elements('.up-card-list-section')
+        if jobs:
+            for i in jobs:
+                # time.sleep(random.randint(10, 30))    
+                print('no',i,'in this page',p)
+                title= i.find_element("div > div> h4 >a").text
+                print(title,'-')
+                href=i.find_element("div > div> h4 >a").get_attribute('href')
+                print('111')
+                id =href.replace('/job/','').replace('/','')
+                joburl='https://www.upwork.com'+href
+                print('222')
+                tag=''
+                tags= i.find_elements(By.CSS_SELECTOR,"div.up-skill-wrapper>a")
+                if tags:
+                    for i in tags:
+                        tag=tag+','+i.text
+
+                web_driver.get(joburl)
+
+
+                des=web_driver.find_element(By.CSS_SELECTOR,'.job-description').text
+                # print('des',des)
+
+                # print('des',des)
+
+                des =des.strip().replace('\r','').replace('\n','')
+                # print('des',des)
+
+        # Making a list of dicts
+                job = {"id":id,
+                "url":url,
+                "title":title,
+                "tags":tag,
+                "des":des
+                }
+                print('===',job)
+                result.append(job)  
+                # await asyncio.sleep(6)                     
+                    
+                    #     return jobs
+    filename = 'data/'+topic+'/{}.json'.format(search_query)
+
+    date = current_date()
+    file = os.path.join(search_query, date, filename)
+    write_text(file, result)
+
+
 async def scrape_pl(search_query="python", topic='upwork'):
     # time.sleep(random.randint(10,50))
     # Sends a request
@@ -227,6 +310,6 @@ keywords = opts.keywords
 topic = opts.topic
 keywords='tiktok'
 # asyncio.run(scrape_data(search_query=keywords, topic=topic))
-asyncio.run(scrape_pl(search_query=keywords, topic=topic))
+asyncio.run(scrape_uc(search_query=keywords, topic=topic))
 # scrape_data('youtube')
 # scrape_data('nft')
