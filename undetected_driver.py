@@ -41,7 +41,7 @@ def get_undetected_webdriver_silence(silence:bool=True):
     silence = True if silence is None or "linux" in sys.platform else silence
 
     if silence is True:
-        options.add_argument("--headless")
+        # options.add_argument("--headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-software-rasterizer")
 

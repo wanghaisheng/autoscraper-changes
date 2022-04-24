@@ -106,9 +106,9 @@ def scrape_uc(search_query="tiktok", topic='upwork'):
     next=web_driver.find_element(By.CSS_SELECTOR, '#login_control_continue').click()
     wait = WebDriverWait(web_driver, 10)
 
-    url = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
+    home = "https://www.upwork.com/search/jobs/?q={}&per_page=50&sort=recency".format(search_query)
 
-    out =web_driver.get(url)        
+    out =web_driver.get(home)        
     wait = WebDriverWait(web_driver, 10)
     html = web_driver.execute_script("return document.documentElement.outerHTML")
     upwork_soup = BeautifulSoup(html, 'html.parser')
@@ -133,42 +133,59 @@ def scrape_uc(search_query="tiktok", topic='upwork'):
         wait = WebDriverWait(web_driver, 10)
         html = web_driver.execute_script("return document.documentElement.outerHTML")
         upwork_soup = BeautifulSoup(html, 'html.parser')
-        website = upwork_soup.findAll('section', {'class':'job-tile air-card-hover hover'})
+        # website = upwork_soup.select('section.up-card-section.up-card-list-section.up-card-hover')        
+        # website = upwork_soup.find_all('section', {'class':''})
+        # website = upwork_soup.find_all('section', {'class':'up-card-hover'})
 
-
-        for data in website:
-            job_title = data.findAll('h2', {'class':'job-title m-0-top m-sm-bottom'})[0].text.strip(" \n\t\r").encode('utf-8')
-            job_type = data.findAll('strong', {'class':'js-type'})[0].text.strip(" \n\t\r")
-            job_level = data.findAll('span', {'class':'js-contractor-tier'})[0].text.strip(" - \n\t\r")
-            try:
-                job_budget = data.findAll('span', {'data-itemprop':'baseSalary'})[0].text.strip(" -  \n\t\r")
-            except:
-                job_budget = "No Data"
-            try:
-                job_estimated_time = data.findAll('span', {'class':'js-duration'})[0].text.strip("Est. Time -  : \n\t\r ")
-            except:
-                job_estimated_time = "No Data"
-            job_posted_time = data.findAll('time', {'data-itemprop':'datePosted'})[0].text.strip(" -  \n\t\r")
-            job_proposals = data.findAll('small', {'class':'display-inline-block m-sm-top m-md-right'})[0].text
-            try:
-                job_country = data.findAll('strong', {'class':'text-muted client-location'})[0].text
-            except:
-                job_country = "No Data"
-            link = data.findAll('a', {'class':'job-title-link break visited'})
+        # print('length',len(website))
+        counter = 0
+        for i in upwork_soup.find_all('a'):
+            print(i)
+            if i.parent.name == 'h4':
+                title = (i.find("up-c-line-clamp").text)
+                print(title)
+                desc = (upwork_soup.find_all('span', {"class":"js-description-text"})[counter].text[0:(soup.find_all('span', {"class":"js-description-text"})[counter].text.find('.') + 1)] + " (...)\n\n\n\n")
+                link = upwork_soup.find_all("a", {"class":"job-title-link break visited"})[counter]['href']
+                strong = upwork_soup.find_all("strong", {"class":"js-budget"})[counter]
+                price = strong.find("span").text.strip()
+                xp = upwork_soup.find_all("strong", {"class":"js-contractor-tier"})[counter].text
+                link = f'https://www.upwork.com/freelance-jobs/apply{link[4:]}'
+                print('---',link)
+                counter=counter+1
             for job_link in link:
                 if job_link.has_attr('href'):
+
                     half_link = job_link['href']
                     job_page_link = "https://upwork.com" + half_link
                     web_driver.get(job_page_link)
                     time.sleep(10)
                     html = web_driver.execute_script("return document.documentElement.outerHTML")
-                    job_page_soup = BeautifulSoup(html, 'html.parser')
-                    job_detail = job_page_soup.findAll('p', {'class':'break'})[0].text
+                    job_page_soup = BeautifulSoup(html, 'html.parser')                    
+                    job_type = job_page_soup.find_all('strong', {'class':'js-type'})[0].text.strip(" \n\t\r")
+                    job_level = job_page_soup.find_all('span', {'class':'js-contractor-tier'})[0].text.strip(" - \n\t\r")
+                    print(job_level)
+
                     try:
-                        job_skill = job_page_soup.findAll('a', {'class':'o-tag-skill m-0-left m-0-top m-md-bottom'})[0].text
+                        job_budget = job_page_soup.find_all('span', {'data-itemprop':'baseSalary'})[0].text.strip(" -  \n\t\r")
+                    except:
+                        job_budget = "No Data"
+                    try:
+                        job_estimated_time = job_page_soup.find_all('span', {'class':'js-duration'})[0].text.strip("Est. Time -  : \n\t\r ")
+                    except:
+                        job_estimated_time = "No Data"
+                    job_posted_time = job_page_soup.find_all('time', {'data-itemprop':'datePosted'})[0].text.strip(" -  \n\t\r")
+                    job_proposals = job_page_soup.find_all('small', {'class':'display-inline-block m-sm-top m-md-right'})[0].text
+                    try:
+                        job_country = job_page_soup.find_all('strong', {'class':'text-muted client-location'})[0].text
+                    except:
+                        job_country = "No Data"
+
+                    job_detail = job_page_soup.find_all('p', {'class':'break'})[0].text
+                    try:
+                        job_skill = job_page_soup.find_all('a', {'class':'o-tag-skill m-0-left m-0-top m-md-bottom'})[0].text
                     except:
                         job_skill = "No Data"
-                    job_div = job_page_soup.findAll('div', {'id':'form'})[0].text       
+                    job_div = job_page_soup.find_all('div', {'id':'form'})[0].text       
                     job ={
                         "job_title":job_title,
                         "job_type":job_type,
@@ -185,7 +202,6 @@ def scrape_uc(search_query="tiktok", topic='upwork'):
                     }
                     print(job)
                     supabaseop("upwork_jobs",job)
-                    time.sleep(30)
 
 
 @retry(stop=stop_after_attempt(3), before=before_log(logger, logging.DEBUG))
