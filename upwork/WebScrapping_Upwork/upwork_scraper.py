@@ -74,8 +74,9 @@ class Scraper:
         
 
     def makeUrl(self, page):
-        return f"https://www.upwork.com/search/jobs/url?client_hires=1-9,10-&amount=5000-&payment_verified=1&duration_v3=ongoing&page={page}&per_page=50&q={self.keyword}&sort=recency&t=0,1"
-        
+        # return f"https://www.upwork.com/search/jobs/url?client_hires=1-9,10-&amount=5000-&payment_verified=1&duration_v3=ongoing&page={page}&per_page=50&q={self.keyword}&sort=recency&t=0,1"
+        return f"https://www.upwork.com/search/jobs/?q={self.keyword}&per_page=50&sort=recency&page={page}"
+
     def scrap(self):
         i = 1
         while True:
@@ -86,7 +87,9 @@ class Scraper:
                 break
 
             logger.warning('Grab page #%i...' % i)
+            print(response)
             page_data = response.json()
+            print(page_data)
             if page_data['searchResults']['paging']['count'] == 0:
                 logger.warning('All pages grabbed! Finished!')
                 break
