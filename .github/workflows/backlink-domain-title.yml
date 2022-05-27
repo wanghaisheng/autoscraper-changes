@@ -1,6 +1,8 @@
 name: backlink-domain-title
 on:
-  push
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "00 12 * * *"
 jobs:
   scrape_and_email:
     runs-on: ubuntu-latest

@@ -2,12 +2,9 @@ name: websitecrawl
 
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
-  schedule:
-    # 每小时整点执行
-    - cron: "00 12 * * *"
+  # schedule:
+  #   - cron: "00 12 * * *"
     
 jobs:
   build:

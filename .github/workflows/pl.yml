@@ -4,12 +4,9 @@ name: run-genshin
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  schedule:
-    - cron: "00 12 * * *"
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  # schedule:
+  #   - cron: "00 12 * * *"
 env:
   AIRTABLE_API_KEY: ${{secrets.AIRTABLE_API_KEY}}
   GENSHIN_AIRTABLE_BASE_KEY: ${{secrets.GENSHIN_AIRTABLE_BASE_KEY}}
