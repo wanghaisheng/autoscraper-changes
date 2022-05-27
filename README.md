@@ -1,6 +1,6 @@
 # GitHub AutoScraper + Change Alerts
 
-
+pyautogui
 
 ## tidb cloud 
  

@@ -2,6 +2,7 @@
 '''
     知网论文数据爬取
 '''
+from ast import keyword
 from bs4 import BeautifulSoup
 from selenium import webdriver 
 import time
@@ -41,7 +42,7 @@ def driver_open(driver, key_word):
     soup = BeautifulSoup(content, 'lxml')
     return soup
 
-def spider(driver, soup, papers):
+def spider(driver, soup, papers,writer_p_a):
     tbody = soup.find_all('tbody')
     tbody = BeautifulSoup(str(tbody[0]), 'lxml')
     tr = tbody.find_all('tr')
@@ -72,6 +73,14 @@ def spider(driver, soup, papers):
         print('\n')
         paper = Paper(title, authors)
         papers.append(paper)
+       # 读取每一篇论文
+        # for paper in papers:
+            # 写入paper_author.csv文件
+        for author in paper.authors:
+            if author.name:
+                # print(author + "  ")
+                writer_p_a.writerow([author.name, author.college, author.major, paper.title])
+
         time.sleep(1)   # 每调一次spider休息1s
 
 
@@ -122,28 +131,27 @@ if __name__ == '__main__':
     driver = webdriver.Chrome(service=chrome_service, chrome_options=option)
 
 #     driver = webdriver.Chrome(r"C:\Users\小老虎\Desktop\chromedriver.exe")
-    soup = driver_open(driver, '便秘')  # 搜索知识图谱
-    papers = []     # 用于保存爬取到的论文
-    # 将爬取到的论文数据放入papers中
-    spider(driver, soup, papers)
-    for pn in range(2, 31):
-        content = change_page(driver, pn)
-        spider(driver, content, papers)
-    driver.close()
+    keywords=[
+        # '机器人',''机器人,
+        '计算机视觉','机器视觉','三维重建','slam','摄像头','点云','智能硬件','服务机器人'
+        ,'行车记录仪','运动相机']
+    for k in keywords:
+        # 写入文件
+        f_papers_authors = open('./'+k+'_paper_author.csv', 'w', encoding = 'utf-8', newline = '')
+        writer_p_a = csv.writer(f_papers_authors)  # 基于文件对象构建 csv写入对象
+        writer_p_a.writerow(["name", "college", "major", "paper"])    # csv文件的表头
+                
+        soup = driver_open(driver, k)  # 搜索知识图谱
+        papers = []     # 用于保存爬取到的论文
+        # 将爬取到的论文数据放入papers中
+        spider(driver, soup, papers,writer_p_a)
+        for pn in range(2, 31):
+            content = change_page(driver, pn)
+            spider(driver, content, papers,writer_p_a)
+        driver.close()
 
 
-    # 写入文件
-    f_papers_authors = open('./paper_author.csv', 'w', encoding = 'utf-8', newline = '')
-    writer_p_a = csv.writer(f_papers_authors)  # 基于文件对象构建 csv写入对象
-    writer_p_a.writerow(["name", "college", "major", "paper"])    # csv文件的表头
-    
-    # 读取每一篇论文
-    for paper in papers:
-        # 写入paper_author.csv文件
-        for author in paper.authors:
-            if author.name:
-                # print(author + "  ")
-                writer_p_a.writerow([author.name, author.college, author.major, paper.title])
 
-    # 关闭文件
-    f_papers_authors.close()
+ 
+        # 关闭文件
+        f_papers_authors.close()
